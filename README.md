@@ -18,6 +18,7 @@ AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in
 * Custom Event which allows API scripts/add-ins to register macros.
 
 ### Planned:
+* Create icons for built-in commands
 * A built-in command to halt any currently running macro.
 * Ability to add custom icons to each macro.
 * Possible collaboration with AnyShortcut
@@ -56,10 +57,12 @@ Built-in commands include:
  * Change Cameras Up
  * Change Cameras Forwards
 
+![Screenshot](builtin_commands_screenshot.png)
+
 Built-in macros include:
  * Align Camera
 
-![Screenshot](builtin_screenshot.png)
+![Screenshot](builtin_macro_screenshot.png)
 
 ## Supported Platforms
   * Windows
