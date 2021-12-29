@@ -217,7 +217,7 @@ class Macro:
 		self.parentControls = parentControls
 		self.Dropdown = DropdownRef(parentControls, f'{self.id}_group', self.name, './resources/anymacro')
 		self.Command = CommandRef(self.Dropdown.dropdownControls, self.id, self.name, './resources/anymacro')
-		self.Delete =CommandRef(self.Dropdown.dropdownControls, f'{self.id}_delete', f'Delete {self.name}', './resources/stop')
+		self.Delete =CommandRef(self.Dropdown.dropdownControls, f'{self.id}_delete', f'Delete {self.name}', './resources/delete')
 		self.updateHandlers(self.executeList)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	def updateHandlers(self,CommandIdList:list = None):

@@ -1,4 +1,4 @@
-# ![](resources/AnyMacroIcon.png) AnyMacro
+# ![](resources/AnyMacroIcon/AnyMacroIcon.png) AnyMacro
 
 AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in a row to form `Macros`. Macros are created from a set of commands run while the add-in is recording and will fire each of them consecutively. Additionally, the macros created are able to be mapped to keyboard shortcuts for ease of access.
 
