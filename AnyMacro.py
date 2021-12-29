@@ -24,6 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import inspect
 import adsk.core, adsk.fusion, adsk.cam
 
 from collections import deque
@@ -370,6 +371,7 @@ def run(context):
 	checkQueue()
 	jsonToMacros() #Loads the saved macros
 	createAddMacroCustomEvent()
+	createBuiltInCommands()
 
 @error_catcher_
 def stop(context):
@@ -434,6 +436,9 @@ def add_macro_dropdown(parent:adsk.core.ToolbarControls):
 
 def jsonToMacros():	Macro.fromList(settings.readDataFromFile(MACRO_FILE_DATA_PATH,True))
 def macrosToJson():	settings.writeDataToFile(MACRO_FILE_DATA_PATH,Macro.toList(),True)
+
+
+# Custom event so other addins can create macros
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 add_macro_event_Handler:events.LinkedHandler = None
@@ -452,3 +457,130 @@ def AddMacroEventHandler(args:adsk.core.CustomEventArgs):
 def removeAddMacroCustomEvent():
 	add_macro_event_Handler.remove()
 	app_.unregisterCustomEvent(ADD_MACRO_CUSTOM_ID)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Built in commands for built in macros
+	
+#|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+def getCameraDirection(camera:adsk.core.Camera):
+	return camera.eye.vectorTo(camera.target)
+
+
+finiteGometry = (adsk.fusion.BRepEdge, adsk.fusion.SketchLine)
+infiniteGeometry = (adsk.fusion.ConstructionAxis,)
+
+def getLineDirection(line):
+	if isinstance(line, finiteGometry):
+		if isinstance(line, adsk.fusion.BRepEdge):
+			start = line.startVertex.geometry
+			end = line.endVertex.geometry
+			lineDirection = start.vectorTo(end)
+		elif isinstance(line, adsk.fusion.SketchLine):
+			start = line.startSketchPoint.geometry
+			end = line.endSketchPoint.geometry
+			lineDirection = start.vectorTo(end)
+	elif isinstance(line, infiniteGeometry):
+		if isinstance(line, adsk.fusion.ConstructionAxis):
+			infLine = line.geometry
+			lineDirection = infLine.direction
+	else: raise TypeError('Incorrect line Type.')
+	return lineDirection
+
+def projectVectors(fromVec:adsk.core.Vector3D,toVec:adsk.core.Vector3D, normalised=False):
+	dotProd = fromVec.dotProduct(toVec)
+	sqrMag = fromVec.length**2
+
+	projection = toVec.copy()
+	projection.scaleBy(dotProd/sqrMag)
+	if normalised: projection.normalize()
+	return projection 
+
+def reAssignCamera(cameraCopy:adsk.core.Camera):
+	cameraCopy.isSmoothTransition = True
+	app_.activeViewport.camera = cameraCopy
+	ui_.activeSelections.clear()
+
+
+def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
+	args.command.isRepeatable = False
+	args.command.isExecutedWhenPreEmpted = False
+	upLine = ui_.selectEntity('Please select a line represinting the "up" direction', 'LinearEdges,SketchLines,ConstructionLines').entity
+	lineDirection = getLineDirection(upLine)
+	upDirection = app_.activeViewport.camera.upVector.copy()
+
+	orintatedVector = projectVectors(upDirection,lineDirection,True)
+
+	camera_copy = app_.activeViewport.camera
+	camera_copy.upVector = orintatedVector
+	reAssignCamera(camera_copy)
+
+def changeViewAxis(args: adsk.core.CommandCreatedEventArgs):
+	args.command.isRepeatable = False
+	args.command.isExecutedWhenPreEmpted = False
+	forwardsLine = ui_.selectEntity('Please select a line represinting the "forwards" direction', 'LinearEdges,SketchLines,ConstructionLines').entity
+	lineDirection = getLineDirection(forwardsLine)
+	cameraDirection = getCameraDirection(app_.activeViewport.camera)
+
+	orintatedVector = projectVectors(cameraDirection,lineDirection,True)
+	if orintatedVector.length != 1: #Prevents perpendicular angles from failing
+		orintatedVector = lineDirection.copy()
+		orintatedVector.normalize()
+	orintatedVector.scaleBy(cameraDirection.length)
+
+	newEye = app_.activeViewport.camera.target.asVector()
+	newEye.subtract(orintatedVector)
+
+	camera_copy = app_.activeViewport.camera
+	camera_copy.eye = newEye.asPoint()
+	reAssignCamera(camera_copy)
+
+
+def createBuiltInCommands():
+	inspectPanel = ui_.allToolbarPanels.itemById('ToolsInspectPanel')
+	def create(controls:adsk.core.ToolbarControls, cmd_def_id, text, tooltip, resource_folder, handler):
+		# The cmd_def_id must never change during development of the add-in as users hotkeys will map to the command definition ID.
+		getDelete(ui_.commandDefinitions,cmd_def_id)
+		cmd_def = checkIcon(ui_.commandDefinitions.addButtonDefinition( cmd_def_id, text, tooltip, resource_folder))
+		events_manager_.add_handler(cmd_def.commandCreated, callback=handler)
+		return controls.addCommand(cmd_def)
+	
+
+	create(inspectPanel.controls,
+			'zxynine_anymacro_BuiltinAlignView',
+			'Align The Cameras Up',
+			'',
+			'./resources/repeat',
+			alignViewHandler)
+
+	create(inspectPanel.controls,
+			'zxynine_anymacro_BuiltinChangeView',
+			'Change the view Forwards',
+			'',
+			'./resources/save',
+			changeViewAxis)

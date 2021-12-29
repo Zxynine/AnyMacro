@@ -1,10 +1,10 @@
 [
   {
-    "name": "Align Camera",
-    "id": "AnyMacro_Align_Camera",
+    "name": "Builtin: Align Camera",
+    "id": "AnyMacro_Builtin_Align_Camera",
     "executeList": [
-      "thomasa88_anyShortcutBuiltinChangeView",
-      "thomasa88_anyShortcutBuiltinAlignView"
+      "zxynine_anymacro_BuiltinChangeView",
+      "zxynine_anymacro_BuiltinAlignView"
     ]
   }
 ]
