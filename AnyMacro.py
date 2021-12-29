@@ -376,6 +376,7 @@ def run(context):
 @error_catcher_
 def stop(context):
 	removeAddMacroCustomEvent()
+	removeBuiltInCommands()
 	events_manager_.clean_up()
 	deleteAll(tracking_dropdown_.control, macro_dropdown_.control, panel_)
 
@@ -500,11 +501,10 @@ def getLineDirection(line):
 		if isinstance(line, adsk.fusion.BRepEdge):
 			start = line.startVertex.geometry
 			end = line.endVertex.geometry
-			lineDirection = start.vectorTo(end)
 		elif isinstance(line, adsk.fusion.SketchLine):
 			start = line.startSketchPoint.geometry
 			end = line.endSketchPoint.geometry
-			lineDirection = start.vectorTo(end)
+		lineDirection = start.vectorTo(end)
 	elif isinstance(line, infiniteGeometry):
 		if isinstance(line, adsk.fusion.ConstructionAxis):
 			infLine = line.geometry
@@ -584,3 +584,10 @@ def createBuiltInCommands():
 			'',
 			'./resources/save',
 			changeViewAxis)
+
+def removeBuiltInCommands():
+	inspectPanel = ui_.allToolbarPanels.itemById('ToolsInspectPanel')
+	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinAlignView')
+	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeView')
+	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinAlignView')
+	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeView')
