@@ -2,16 +2,16 @@
 
 AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in a row to form `Macros`. Macros are created from a set of commands run while the add-in is recording and will fire each of them consecutively. Additionally, the macros created are able to be mapped to keyboard shortcuts for ease of access.
 
+Please note, this is not able to nor is it designed to replace the *`AnyShortcut`* add-in. This add-in is only based on the work by the creator of that add-in and is completly independant. With that said, using both is highly reccomended as they provide a large range of control over your Fusion 360™ application.
 
-## Built-in Macros
+## Planned Features
 
-The built-in commands are always visible in the *AnyShortcut* menu. Assign shortcuts to them in the usual way.
-
-Built-in commands include:
-
- * Align Camera
-
-![Screenshot](builtin_screenshot.png)
+* A built-in command to halt any currently running macro.
+* Ability to add custom icons to each macro.
+* Possible collaboration with AnyShortcut
+* Adding Built-in macros
+* A favourites dropdown
+* A menu for direct macro editing and adding commands
 
 ## Recording
 
@@ -36,6 +36,16 @@ To set up a macro:
 
 To remove a macro, navigate to its location under the *Custom Macros* dropdown and select the remove option under it. A prompt will appear asking if you are sure you wish to remove it.
 
+## Built-in Macros
+
+The built-in commands are always visible in the *AnyShortcut* menu. Assign shortcuts to them in the usual way.
+
+Built-in commands include:
+
+ * Align Camera
+
+![Screenshot](builtin_screenshot.png)
+
 ## Fusion 360 Quirks
 
 Be aware of the following quirks in Fusion 360™.
@@ -51,11 +61,11 @@ Be aware of the following quirks in Fusion 360™.
 
 ## Installation
 
-Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page.
+1. Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page.
 
-Unpack it into `API\AddIns` (see [How to install an add-in or script in Fusion 360](https://knowledge.autodesk.com/support/fusion-360/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-install-an-ADD-IN-and-Script-in-Fusion-360.html)).
+2. Unpack it into `API\AddIns` (see [How to install an add-in or script in Fusion 360](https://knowledge.autodesk.com/support/fusion-360/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-install-an-ADD-IN-and-Script-in-Fusion-360.html)).
 
-Make sure the directory is named `AnyMacro`, with no suffix.
+3. Make sure the directory is named `AnyMacro`, with no suffix.
 
 The new menu *`TOOLS`* -> *`ANYMACRO`* is now available.
 
