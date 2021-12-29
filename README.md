@@ -6,8 +6,16 @@ AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in
 
 ## Features
 ### Current:
-pass
-
+* Ability to record a series of commands.
+* Ability to remove commands from the Test Macro before saving.
+* Ability to stop recording, then start again while keeping history.
+* Ability to clear the current recorded commands to start again.
+* Ability to save the recorded series of commands as a persistant macro.
+* Ability to delete any recorded macro.
+* Option to block a command from being recorded if it is fired twice in a row.
+* Two Built-in Camera orienting commands.
+* One Built-in Macro to demonstrate chaining.
+* Custom Event which allows API scripts/add-ins to register macros.
 
 ### Planned:
 * A built-in command to halt any currently running macro.
@@ -20,24 +28,26 @@ pass
 
 
 
-## Recording
+## Usage
 When enabled, the add-in records the resulting commands of actions that the user performs and collects them in the *AnyMacro* menu. If not stopped, the recording stops automatically after a number of commands, to avoid any performance degradation when the user is not setting up macros.
 
 \* Not all actions in Fusion 360™ result in "Commands" and some commands are not usable on their own. For example, *Pick Circle/Arc Tangent* does not generate a "Command" and *Roll History Marker Here* is triggered when clicking rewind in the history, but rewind actually first selects an item and then rolls.
 
 ![Screenshot](tracker_screenshot.png)
 
-### Usage
-To set up a macro:
-
+### Creating
 * Click *Start recording* and then launch a series of commands in the order you desire for your macro.
 * If the commands you chose are able to be recorded, they will be added underneath the record command in the *Command Recorder* dropdown at the top of the *AnyMacro* panel.
 * Should you desire to remove a command, you need just click its name within the dropdown.
 * Once you stop recording, two new options: *Save Macro* and *Reset Recording*; should appear just under the record command along with a test macro at the bottom of the list. The test macro allows you to make sure everything works before you save it and see the changes you make to the command list.
 * Finally, once you are satisfied with the macro, hit the *Save Macro* button. This will display a prompt that will ask you to name your macro. There are few restrictions on the name, however, make sure there are *some* numbers or letters as its ID will be created using the `str.isidentifier()` method for each character.
-* You should now find your command under the *Custom Macros* dropdown. You can assign it to keys, run, and delete it right from the command. Additionaly, the macro is persistant, meaning it will remain between sessions of fusion360 and only needs to be created once.
+* You should now find your command under the *Custom Macros* dropdown. You can run, assign a key-combination, and delete it right from the menu. Additionaly, the macro is persistant, meaning it will remain between sessions of fusion360 and only needs to be created once.
 
-To remove a macro, navigate to its location under the *Custom Macros* dropdown and select the remove option under it. A prompt will appear asking if you are sure you wish to remove it.
+### Removing
+* Navigate to its location under the *Custom Macros* dropdown
+* Select the remove option under the macro. 
+* A prompt will appear asking if you are sure you wish to remove it.
+* Hit `OK` and the macro is now gone.
 
 ## Built-in Macros
 The *AnyMacro* add-in includes two built-in commands that are used in the built-in macro *'`Align Camera`'*. These commands can be found under the menu item *`TOOLS`* -> *`INSPECT`*. The macro demonstrates how these two commands can be chained.
