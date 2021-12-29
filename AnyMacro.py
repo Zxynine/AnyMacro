@@ -266,7 +266,7 @@ class MacroPrecurser:
 		CommandTracker.toggle(False)
 		self.removeHandler()
 		if self.count == 0: return
-		self.currentMacro = Macro(self.cmdIds.values(), tracking_dropdown_.dropdownControls, 'NewMacroId', 'New Macro')
+		self.currentMacro = Macro(self.cmdIds.values(), tracking_dropdown_.dropdownControls, 'TestMacroId', 'Test Macro')
 
 	@property
 	def count(self):return len(self.executeList)
@@ -573,14 +573,14 @@ def createBuiltInCommands():
 
 	create(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinAlignView',
-			'Align The Cameras Up',
+			'Change Cameras Up',
 			'',
 			'./resources/repeat',
 			alignViewHandler)
 
 	create(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinChangeView',
-			'Change the view Forwards',
+			'Change Cameras Forwards',
 			'',
 			'./resources/save',
 			changeViewAxis)

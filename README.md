@@ -2,10 +2,14 @@
 
 AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in a row to form `Macros`. Macros are created from a set of commands run while the add-in is recording and will fire each of them consecutively. Additionally, the macros created are able to be mapped to keyboard shortcuts for ease of access.
 
-Please note, this is not able to nor is it designed to replace the *`AnyShortcut`* add-in. This add-in is only based on the work by the creator of that add-in and is completly independant. With that said, using both is highly reccomended as they provide a large range of control over your Fusion 360™ application.
+\* This is not able to nor is it designed to replace the *`AnyShortcut`* add-in and thus, its functionality is not planned to be included in *`AnyMacro`*. This add-in is only based on the work by the creator of that add-in and is completly independant. With that said, using both is highly reccomended as they provide a large range of control over your Fusion 360™ application.
 
-## Planned Features
+## Features
+### Current:
+pass
 
+
+### Planned:
 * A built-in command to halt any currently running macro.
 * Ability to add custom icons to each macro.
 * Possible collaboration with AnyShortcut
@@ -13,18 +17,17 @@ Please note, this is not able to nor is it designed to replace the *`AnyShortcut
 * A favourites dropdown
 * Ability to edit pre-made/saved macros
 
+
+
+
 ## Recording
-
-When enabled, the add-in records the resulting commands of actions that the user performs and collects them in the *AnyMacro* menu. The commands in the menu can then be assigned shortcut keys in the regular way.
-
-If not stopped, the recording stops automatically after a number of commands, to avoid any performance degradation when the user is not setting up shortcuts.
+When enabled, the add-in records the resulting commands of actions that the user performs and collects them in the *AnyMacro* menu. If not stopped, the recording stops automatically after a number of commands, to avoid any performance degradation when the user is not setting up macros.
 
 \* Not all actions in Fusion 360™ result in "Commands" and some commands are not usable on their own. For example, *Pick Circle/Arc Tangent* does not generate a "Command" and *Roll History Marker Here* is triggered when clicking rewind in the history, but rewind actually first selects an item and then rolls.
 
 ![Screenshot](tracker_screenshot.png)
 
 ### Usage
-
 To set up a macro:
 
 * Click *Start recording* and then launch a series of commands in the order you desire for your macro.
@@ -37,22 +40,22 @@ To set up a macro:
 To remove a macro, navigate to its location under the *Custom Macros* dropdown and select the remove option under it. A prompt will appear asking if you are sure you wish to remove it.
 
 ## Built-in Macros
-
-The built-in commands are always visible in the *AnyShortcut* menu. Assign shortcuts to them in the usual way.
+The *AnyMacro* add-in includes two built-in commands that are used in the built-in macro *'`Align Camera`'*. These commands can be found under the menu item *`TOOLS`* -> *`INSPECT`*. The macro demonstrates how these two commands can be chained.
 
 Built-in commands include:
+ * Change Cameras Up
+ * Change Cameras Forwards
 
+Built-in macros include:
  * Align Camera
 
 ![Screenshot](builtin_screenshot.png)
 
 ## Supported Platforms
-
   * Windows
   * Mac OS
 
 ## Installation
-
 1. Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page.
 
 2. Unpack it into `API\AddIns` (see [How to install an add-in or script in Fusion 360](https://knowledge.autodesk.com/support/fusion-360/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-install-an-ADD-IN-and-Script-in-Fusion-360.html)).
@@ -64,7 +67,6 @@ The new menu *`TOOLS`* -> *`ANYMACRO`* is now available.
 The add-in can be temporarily disabled using the *Scripts and Add-ins* dialog. Press *`Shift+S`* in Fusion 360™ and go to the *Add-Ins* tab.
 
 ## Reporting Issues
-
 If you get any problems, please check out the section on [Fusion 360 quirks](#fusion-360-quirks).
 
 If that does not apply to you, please report any issues that you find in the add-in on the [Issues](https://github.com/zxynine/AnyMacro/issues) page.
@@ -72,7 +74,6 @@ If that does not apply to you, please report any issues that you find in the add
 For better support, please include the steps you performed and the result. Also include copies of any error messages.
 
 ## Fusion 360 Quirks
-
 Be aware of the following quirks in Fusion 360™.
 
 * Fusion 360™ cannot handle all key combinations. Forget Alt+Left to rollback history, because fusion cannot save this combination and it will be broken next time you start the application.
@@ -80,21 +81,17 @@ Be aware of the following quirks in Fusion 360™.
 * Menu items in sub-menus are not always clickable ([bug](https://forums.autodesk.com/t5/fusion-360-api-and-scripts/api-bug-cannot-click-menu-items-in-nested-dropdown/td-p/9669144)).
 
 ## Author
-
 This add-in is created by ZXYNINE and is based off of Thomas Axelsson's AnyShortcut.
 
 ## License
-
 This project is licensed under the terms of the MIT license. See [LICENSE](LICENSE).
 
 ## More Fusion 360™ Add-ins
-
 [My Fusion 360™ app store page](https://apps.autodesk.com/en/Publisher/PublisherHomepage?ID=EFHWLR46R29G)
 
 [All my add-ins on Github](https://github.com/Zxynine?tab=repositories)
 
 ## Changelog
-
 * v 0.1.0
   * Original Implementation 
 
