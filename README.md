@@ -34,7 +34,7 @@ When enabled, the add-in records the resulting commands of actions that the user
 
 \* Not all actions in Fusion 360™ result in "Commands" and some commands are not usable on their own. For example, *Pick Circle/Arc Tangent* does not generate a "Command" and *Roll History Marker Here* is triggered when clicking rewind in the history, but rewind actually first selects an item and then rolls.
 
-![Screenshot](tracker_screenshot.png)
+![Screenshot](tracking_screenshot.png)
 
 ### Creating
 * Click *Start recording* and then launch a series of commands in the order you desire for your macro.
