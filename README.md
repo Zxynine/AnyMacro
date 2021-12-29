@@ -41,11 +41,9 @@ To remove a macro, navigate to its location under the *Custom Macros* dropdown a
 
 Be aware of the following quirks in Fusion 360™.
 
-* Even though you've added a shortcut, it might not show up next time you restart Fusion 360™. However, the shortcut still works and you see it if you open *Change Keyboard Shortcut*. (You can also verify using [KeyboardShortcutsSimple](https://github.com/thomasa88/KeyboardShortcutsSimple/blob/master/README.md))
+* Fusion 360™ cannot handle all key combinations. Forget Alt+Left to rollback history, because fusion cannot save this combination and it will be broken next time you start the application.
 
-* Fusion 360™ cannot handle all key combinations. Forget Alt+Left to rollback history, because Fusion 360™ cannot save this combination and it will be broken next time you start Fusion 360™.
-
-* Menu items in sub-menus are not always clickable ([bug](https://forums.autodesk.com/t5/fusion-360-api-and-scripts/api-bug-cannot-click-menu-items-in-nested-dropdown/td-p/9669144)). However, you don't need to be able to click the commands to map a shortcut!
+* Menu items in sub-menus are not always clickable ([bug](https://forums.autodesk.com/t5/fusion-360-api-and-scripts/api-bug-cannot-click-menu-items-in-nested-dropdown/td-p/9669144)).
 
 ## Supported Platforms
 
@@ -58,30 +56,11 @@ Download the add-in from the [Releases](https://github.com/thomasa88/AnyShortcut
 
 Unpack it into `API\AddIns` (see [How to install an add-in or script in Fusion 360](https://knowledge.autodesk.com/support/fusion-360/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-install-an-ADD-IN-and-Script-in-Fusion-360.html)).
 
-Make sure the directory is named `AnyShortcut`, with no suffix.
+Make sure the directory is named `AnyMacro`, with no suffix.
 
-The new menu *TOOLS* -> *ANYSHORTCUT* is now available.
+The new menu *TOOLS* -> *ANYMACRO* is now available.
 
 The add-in can be temporarily disabled using the *Scripts and Add-ins* dialog. Press *Shift+S* in Fusion 360™ and go to the *Add-Ins* tab.
-
-## Ideas for commands to map
-
-Here is a table of some commands that can be interesting to map.
-
-| Command                     | Notes                                                        |
-| --------------------------- | ------------------------------------------------------------ |
-| Rename, in the timeline     | Let's you select an item in the timeline and press F2 to rename it. I have not found any way to do this in the browser. |
-| Look at (bottom toolbar)    | Select a face and orient the view normal to it. I have not found any way to tell it to "Look at" the current. |
-| Isolate                     |                                                              |
-| Find in Browser             |                                                              |
-| Find in Window              |                                                              |
-| Activate Component          | Works in the Browser and in the 3D space, but you must have selected a component in 3D space, not a body or a face. |
-| Remove                      | Opposed to *Delete,* *Remove* appears as a timeline feature. |
-| Simulate or other workspace | Easily switch to a workspace.                                |
-
-## Finding out what keys you have mapped
-
-See [KeyboardShortcutsSimple](https://github.com/thomasa88/KeyboardShortcutsSimple/blob/master/README.md).
 
 ## Reporting Issues
 
