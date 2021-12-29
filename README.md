@@ -11,7 +11,7 @@ Please note, this is not able to nor is it designed to replace the *`AnyShortcut
 * Possible collaboration with AnyShortcut
 * Adding Built-in macros
 * A favourites dropdown
-* A menu for direct macro editing and adding commands
+* Ability to edit pre-made/saved macros
 
 ## Recording
 
@@ -46,14 +46,6 @@ Built-in commands include:
 
 ![Screenshot](builtin_screenshot.png)
 
-## Fusion 360 Quirks
-
-Be aware of the following quirks in Fusion 360™.
-
-* Fusion 360™ cannot handle all key combinations. Forget Alt+Left to rollback history, because fusion cannot save this combination and it will be broken next time you start the application.
-
-* Menu items in sub-menus are not always clickable ([bug](https://forums.autodesk.com/t5/fusion-360-api-and-scripts/api-bug-cannot-click-menu-items-in-nested-dropdown/td-p/9669144)).
-
 ## Supported Platforms
 
   * Windows
@@ -78,6 +70,14 @@ If you get any problems, please check out the section on [Fusion 360 quirks](#fu
 If that does not apply to you, please report any issues that you find in the add-in on the [Issues](https://github.com/zxynine/AnyMacro/issues) page.
 
 For better support, please include the steps you performed and the result. Also include copies of any error messages.
+
+## Fusion 360 Quirks
+
+Be aware of the following quirks in Fusion 360™.
+
+* Fusion 360™ cannot handle all key combinations. Forget Alt+Left to rollback history, because fusion cannot save this combination and it will be broken next time you start the application.
+
+* Menu items in sub-menus are not always clickable ([bug](https://forums.autodesk.com/t5/fusion-360-api-and-scripts/api-bug-cannot-click-menu-items-in-nested-dropdown/td-p/9669144)).
 
 ## Author
 
