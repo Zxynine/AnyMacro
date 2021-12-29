@@ -1,8 +1,7 @@
 # ![](resources/anymacro/32x32.png) AnyMacro
 
-AnyMacro is an Autodesk® Fusion 360™ add-in for assigning macros from last run commands. It also has some built-in macros for Fusion 360™ commands that cannot easily be capture and run without some extra tweaking (e.g. *Look At Sketch*).
+AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in a row to form `Macros`. Macros are created from a set of commands run while the add-in is recording and will fire each of them consecutively. Additionally, the macros created are able to be mapped to keyboard shortcuts for ease of access.
 
-If you get any problems, please check out the section on [Fusion 360 quirks](#fusion-360-quirks).
 
 ## Built-in Macros
 
@@ -16,7 +15,7 @@ Built-in commands include:
 
 ## Recording
 
-When enabled, the add-in records the resulting commands of actions that the user performs and collects them in the *AnyShortcut* menu. The commands in the menu can then be assigned shortcut keys in the regular way.
+When enabled, the add-in records the resulting commands of actions that the user performs and collects them in the *AnyMacro* menu. The commands in the menu can then be assigned shortcut keys in the regular way.
 
 If not stopped, the recording stops automatically after a number of commands, to avoid any performance degradation when the user is not setting up shortcuts.
 
@@ -52,19 +51,21 @@ Be aware of the following quirks in Fusion 360™.
 
 ## Installation
 
-Download the add-in from the [Releases](https://github.com/thomasa88/AnyShortcut/releases) page.
+Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page.
 
 Unpack it into `API\AddIns` (see [How to install an add-in or script in Fusion 360](https://knowledge.autodesk.com/support/fusion-360/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-install-an-ADD-IN-and-Script-in-Fusion-360.html)).
 
 Make sure the directory is named `AnyMacro`, with no suffix.
 
-The new menu *TOOLS* -> *ANYMACRO* is now available.
+The new menu *`TOOLS`* -> *`ANYMACRO`* is now available.
 
-The add-in can be temporarily disabled using the *Scripts and Add-ins* dialog. Press *Shift+S* in Fusion 360™ and go to the *Add-Ins* tab.
+The add-in can be temporarily disabled using the *Scripts and Add-ins* dialog. Press *`Shift+S`* in Fusion 360™ and go to the *Add-Ins* tab.
 
 ## Reporting Issues
 
-Please report any issues that you find in the add-in on the [Issues](https://github.com/thomasa88/AnyShortcut/issues) page.
+If you get any problems, please check out the section on [Fusion 360 quirks](#fusion-360-quirks).
+
+If that does not apply to you, please report any issues that you find in the add-in on the [Issues](https://github.com/zxynine/AnyMacro/issues) page.
 
 For better support, please include the steps you performed and the result. Also include copies of any error messages.
 
