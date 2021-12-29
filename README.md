@@ -68,12 +68,16 @@ Built-in commands include:
  * Change Cameras Up
  * Change Cameras Forwards
 
-![Screenshot](builtin_commands_screenshot.png)
+
 
 Built-in macros include:
  * Align Camera
 
-![Screenshot](builtin_macro_screenshot.png)
+### Images:
+
+![Screenshot](builtin_macro_screenshot.png) 
+
+![Screenshot](builtin_commands_screenshot.png)
 
 ## Supported Platforms
   * Windows
