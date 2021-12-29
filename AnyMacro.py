@@ -33,7 +33,7 @@ import os.path as path,json
 
 
 # Import relative path to avoid namespace pollution
-from .thomasa88lib import utils, events, manifest, error,settings
+from .addinlib import utils, events, manifest, error,settings
 utils.ReImport_List(events, manifest, error, settings, utils)
 
 
