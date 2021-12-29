@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Align Camera",
+    "id": "AnyMacro_Align_Camera",
+    "executeList": [
+      "thomasa88_anyShortcutBuiltinChangeView",
+      "thomasa88_anyShortcutBuiltinAlignView"
+    ]
+  }
+]

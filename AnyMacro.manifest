@@ -1,0 +1,13 @@
+{
+	"autodeskProduct":	"Fusion360",
+	"type":	"addin",
+	"id":	"3C3BF21D-C815-4ECD-886E-2FDPL45462A9",
+	"author":	"Zxynine",
+	"description":	{
+		"":	"Shows a menu that let you assign macros from last run commands."
+	},
+	"version":	"1.1.1",
+	"runOnStartup":	true,
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true
+}
