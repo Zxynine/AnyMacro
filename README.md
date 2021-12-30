@@ -120,6 +120,6 @@ This project is licensed under the terms of the MIT license. See [LICENSE](LICEN
 [All my add-ins on Github](https://github.com/Zxynine?tab=repositories)
 
 ## Changelog
-* v 0.1.0
+* v 1.0.0
   * Original Implementation 
 
