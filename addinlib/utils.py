@@ -26,7 +26,7 @@
 import adsk.core, adsk.fusion, adsk.cam
 
 import inspect
-import os, re
+import os, re, json
 import importlib
 
 def short_class(obj:adsk.core.Base):
@@ -111,6 +111,27 @@ class Ignore:__enter__=lambda cls:cls;__exit__=lambda *args:True
 def AppObjects(): return GetApp(),GetUi()
 def GetApp(): return adsk.core.Application.cast(adsk.core.Application.get())
 def GetUi(): return GetApp().userInterface
+
+
+
+class CustomEvents:
+	def Create(CustomEventID:str):
+		app = GetApp()
+		app.unregisterCustomEvent(CustomEventID)
+		return app.registerCustomEvent(CustomEventID)
+		
+	def Fire(CustomEventID:str, additionalInfo='', toJsonStr=False):
+		if not toJsonStr: strInfo = additionalInfo
+		else: strInfo = json.dumps(additionalInfo)
+		return GetApp().fireCustomEvent(CustomEventID, strInfo)
+
+	def Remove(CustomEventID:str):
+		return GetApp().unregisterCustomEvent(CustomEventID)
+
+
+
+
+
 
 
 def toIdentifier(toId: str, toUnder:set={'-',' '}): return ''.join(['_'*(c in toUnder) or c*(c.isidentifier()) for c in toId])

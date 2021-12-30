@@ -24,7 +24,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import inspect
 import adsk.core, adsk.fusion, adsk.cam
 
 from collections import deque
@@ -72,11 +71,9 @@ allMacros = []
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #Simple functions
 def exists(obj):return obj is not None
-def ifDelete(obj:adsk.core.CommandControl): return obj.deleteMe() if exists(obj) and obj.isValid else False
-def getDelete(collection:adsk.core.CommandDefinitions,objId): ifDelete(collection.itemById(objId))
-def deleteAll(*objs): return all(map(ifDelete,objs))
+def getDelete(collection:adsk.core.CommandDefinitions,objId): utils.ifDelete(collection.itemById(objId))
+def deleteAll(*objs): return all(map(utils.ifDelete,objs))
 
-def executeCommand(cmdName): ui_.commandDefinitions.itemById(cmdName).execute()
 def UpdateButton(cmdDef: adsk.core.CommandDefinition,Title,Icon): cmdDef.resourceFolder = Icon; cmdDef.controlDefinition.name = Title
 def FullPromote(cmdCtrl:adsk.core.CommandControl): cmdCtrl.isPromoted=cmdCtrl.isPromotedByDefault = True
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -112,7 +109,7 @@ class ReferenceBase:
 		if exists(cmdCtrl): self.id = cmdCtrl.id
 		elif exists(cmdDef): self.id = cmdDef.id
 		else: self.id = None
-	def deleteMe(self):	ifDelete(self.control); self.definition=self.control=None
+	def deleteMe(self):	utils.ifDelete(self.control); self.definition=self.control=None
 
 class CommandRef(ReferenceBase):
 	def __init__(self,parentControls:adsk.core.ToolbarControls,newId,newName,newIcon='./resources/noicon',newToolTip=''):
@@ -153,30 +150,34 @@ def getQueuedEvents(executeList:deque):
 	def initialCreate(args: adsk.core.CommandCreatedEventArgs):
 		currentCommand = None
 		commandOrder = deque(executeList)
+		def stopHandlers():
+			nonlocal currentCommand; currentCommand = None
+			startingInfo.remove(); terminatedInfo.remove()
 
 		def CmdStartingHandler(args:adsk.core.ApplicationCommandEventArgs):
 			if args.commandId == commandOrder[0]:
-				nonlocal currentCommand
-				currentCommand = commandOrder.popleft()
+				nonlocal currentCommand; currentCommand = commandOrder.popleft()
+			if len(commandOrder) == 0: stopHandlers()
 		def CmdTerminatedHandler(args:adsk.core.ApplicationCommandEventArgs):
-			nonlocal currentCommand
 			if args.commandId == currentCommand:
-				if len(commandOrder) > 0: 
-					return executeCommand(commandOrder[0])
-				currentCommand = None
-				startingInfo.remove(); terminatedInfo.remove()
+				if len(commandOrder) == 0: stopHandlers()
+				else: utils.executeCommand(commandOrder[0])
 				
 		startingInfo = events_manager_.add_handler(ui_.commandStarting, CmdStartingHandler)
 		terminatedInfo = events_manager_.add_handler(ui_.commandTerminated, CmdTerminatedHandler)
-		executeCommand(commandOrder[0])
+		utils.executeCommand(commandOrder[0])
 	return initialCreate
 
-
 class Macro:
+	@staticmethod
+	def fromJson(JsonObject: object):
+		if type(JsonObject) is str: return Macro.fromJson(json.loads(JsonObject))
+		MacroMethod = {dict:Macro.fromDict, list:Macro.fromList}.get(type(JsonObject),None)
+		if MacroMethod is None: raise TypeError('Object type must be a: JsonDict, or a JsonList')
+		return MacroMethod(JsonObject)
+
 	@classmethod
 	def fromList(cls, macroList:list): return [cls.fromDict(dict) for dict in macroList]
-	@classmethod
-	def toList(cls): return [cls.toDict(macro) for macro in allMacros]
 	@classmethod
 	def fromDict(cls, macroDict:dict):
 		MacroName = macroDict['name']
@@ -185,6 +186,8 @@ class Macro:
 		parentControl:adsk.core.ToolbarControls = macro_dropdown_.control.controls
 		return Macro(executeList,parentControl,MacroId,MacroName,True)
 
+	@classmethod
+	def toList(cls): return [cls.toDict(macro) for macro in allMacros]
 	def toDict(self):
 		macroDict = {}
 		macroDict['name']=self.name
@@ -198,13 +201,7 @@ class Macro:
 		self.executeList = list(CommandIdList)
 		self.parentControls = parentControls or macro_dropdown_.dropdownControls
 		self.isBuilt = isBuilt
-
-		self.Dropdown:DropdownRef=None
-		self.Command:CommandRef=None
-		self.Delete:CommandRef=None
-		self.createInfo = None
-		self.removeInfo = None
-		
+		self.initialise()
 		self.updateIdentity(macroId,macroName)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	def updateIdentity(self,MacroId=None,MacroName=None):
@@ -233,6 +230,12 @@ class Macro:
 		self.removeInfo = events_manager_.add_handler(self.Delete.definition.commandCreated, MacroRemoveHandler)
 		if self.isBuilt: macrosToJson()
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	def initialise(self):
+		self.Dropdown:DropdownRef=None
+		self.Command:CommandRef=None
+		self.Delete:CommandRef=None
+		self.createInfo = None
+		self.removeInfo = None
 	def removeCommands(self):
 		if exists(self.Dropdown):self.Dropdown.deleteMe()
 		if exists(self.Command):self.Command.deleteMe()
@@ -275,10 +278,11 @@ class MacroPrecurser:
 		self.lastID = cmdDef.id
 		newId = f'{cmdDef.id}_Macro_Fragment_{MacroPrecurser.deleteID}'
 		MacroPrecurser.deleteID +=1
+		self.cmdIds[newId] = cmdDef.id
+
 		getDelete(ui_.commandDefinitions, newId)
 		newCmdDef = checkIcon(ui_.commandDefinitions.addButtonDefinition(newId, cmdDef.name,'Click to remove from Macro', cmdDef.resourceFolder))
 		newCmdCtrl = tracking_dropdown_.dropdownControls.addCommand(newCmdDef)
-		self.cmdIds[newId] = cmdDef.id
 
 		def removeHandler(args: adsk.core.CommandCreatedEventArgs):	
 			getDelete(tracking_dropdown_.dropdownControls, newCmdDef.id)
@@ -363,7 +367,7 @@ def run(context):
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	# Add the command to the tab.
 	panels = ui_.allToolbarTabs.itemById('ToolsTab').toolbarPanels
-	ifDelete(panels.itemById(PANEL_ID))
+	getDelete(panels,PANEL_ID)
 	panel_ = panels.add(PANEL_ID, NAME)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	add_primary_commands(panel_)
@@ -438,27 +442,21 @@ def add_macro_dropdown(parent:adsk.core.ToolbarControls):
 def jsonToMacros():	Macro.fromList(settings.readDataFromFile(MACRO_FILE_DATA_PATH,True))
 def macrosToJson():	settings.writeDataToFile(MACRO_FILE_DATA_PATH,Macro.toList(),True)
 
-
 # Custom event so other addins can create macros
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 add_macro_event_Handler:events.LinkedHandler = None
 def createAddMacroCustomEvent():
 	global add_macro_event, add_macro_event_Handler
-	app_.unregisterCustomEvent(ADD_MACRO_CUSTOM_ID)
-	add_macro_event = app_.registerCustomEvent(ADD_MACRO_CUSTOM_ID)
-	add_macro_event_Handler = events_manager_.add_handler(add_macro_event,AddMacroEventHandler)
+	def AddMacroEventHandler(args:adsk.core.CustomEventArgs):
+		Macro.fromJson(args.additionalInfo)
 
-def AddMacroEventHandler(args:adsk.core.CustomEventArgs):
-	eventData = json.loads(args.additionalInfo)
-	if isinstance(eventData, dict): Macro.fromDict(eventData)
-	elif isinstance(eventData, list): Macro.fromList(eventData)
-	else: raise TypeError('Type must be a JsonDict or JsonList of dicts')
+	add_macro_event = utils.CustomEvents.Create(ADD_MACRO_CUSTOM_ID)
+	add_macro_event_Handler = events_manager_.add_handler(add_macro_event,AddMacroEventHandler)
 
 def removeAddMacroCustomEvent():
 	add_macro_event_Handler.remove()
-	app_.unregisterCustomEvent(ADD_MACRO_CUSTOM_ID)
-
+	utils.CustomEvents.Remove(ADD_MACRO_CUSTOM_ID)
 
 
 
@@ -489,49 +487,44 @@ def removeAddMacroCustomEvent():
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 
-def getCameraDirection(camera:adsk.core.Camera):
-	return camera.eye.vectorTo(camera.target)
-
 
 finiteGometry = (adsk.fusion.BRepEdge, adsk.fusion.SketchLine)
 infiniteGeometry = (adsk.fusion.ConstructionAxis,)
 
-def getLineDirection(line):
+def getLineDirection(prompt):
+	line = ui_.selectEntity(prompt,'LinearEdges,SketchLines,ConstructionLines').entity
 	if isinstance(line, finiteGometry):
 		if isinstance(line, adsk.fusion.BRepEdge):
-			start = line.startVertex.geometry
-			end = line.endVertex.geometry
+			start,end = line.startVertex, line.endVertex
 		elif isinstance(line, adsk.fusion.SketchLine):
-			start = line.startSketchPoint.geometry
-			end = line.endSketchPoint.geometry
-		lineDirection = start.vectorTo(end)
+			start,end = line.startSketchPoint, line.endSketchPoint
+		lineDirection = start.geometry.vectorTo(end.geometry)
 	elif isinstance(line, infiniteGeometry):
 		if isinstance(line, adsk.fusion.ConstructionAxis):
-			infLine = line.geometry
-			lineDirection = infLine.direction
+			lineDirection = line.geometry.direction
 	else: raise TypeError('Incorrect line Type.')
 	return lineDirection
 
 def projectVectors(fromVec:adsk.core.Vector3D,toVec:adsk.core.Vector3D, normalised=False):
-	dotProd = fromVec.dotProduct(toVec)
-	sqrMag = fromVec.length**2
-
 	projection = toVec.copy()
-	projection.scaleBy(dotProd/sqrMag)
+	projection.scaleBy(fromVec.dotProduct(toVec) / fromVec.length**2)
 	if normalised: projection.normalize()
 	return projection 
 
-def reAssignCamera(cameraCopy:adsk.core.Camera):
-	cameraCopy.isSmoothTransition = True
-	app_.activeViewport.camera = cameraCopy
-	ui_.activeSelections.clear()
+def getNormal(unNormVec:adsk.core.Vector3D,scale=1):
+	newVec = unNormVec.copy()
+	newVec.normalize()
+	newVec.scaleBy(scale)
+	return newVec
 
+def getCameraDirection(camera:adsk.core.Camera):
+	return camera.eye.vectorTo(camera.target)
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isRepeatable = False
 	args.command.isExecutedWhenPreEmpted = False
-	upLine = ui_.selectEntity('Please select a line represinting the "up" direction', 'LinearEdges,SketchLines,ConstructionLines').entity
-	lineDirection = getLineDirection(upLine)
+	lineDirection = getLineDirection('Please select a line represinting the "up" direction')
 	upDirection = app_.activeViewport.camera.upVector.copy()
 
 	orintatedVector = projectVectors(upDirection,lineDirection,True)
@@ -540,50 +533,51 @@ def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
 	camera_copy.upVector = orintatedVector
 	reAssignCamera(camera_copy)
 
+
 def changeViewAxis(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isRepeatable = False
 	args.command.isExecutedWhenPreEmpted = False
-	forwardsLine = ui_.selectEntity('Please select a line represinting the "forwards" direction', 'LinearEdges,SketchLines,ConstructionLines').entity
-	lineDirection = getLineDirection(forwardsLine)
+	lineDirection = getLineDirection('Please select a line represinting the "forwards" direction')
 	cameraDirection = getCameraDirection(app_.activeViewport.camera)
 
-	orintatedVector = projectVectors(cameraDirection,lineDirection,True)
-	if orintatedVector.length != 1: #Prevents perpendicular angles from failing
-		orintatedVector = lineDirection.copy()
-		orintatedVector.normalize()
+	camera_copy = app_.activeViewport.camera
+
+	if cameraDirection.isPerpendicularTo(lineDirection):#Prevents perpendicular angles from failing
+		orintatedVector = getNormal(lineDirection)
+		if camera_copy.upVector.isParallelTo(lineDirection):
+			camera_copy.upVector = getNormal(cameraDirection)
+	else: orintatedVector = projectVectors(cameraDirection,lineDirection,True)
 	orintatedVector.scaleBy(cameraDirection.length)
 
-	newEye = app_.activeViewport.camera.target.asVector()
+	newEye = camera_copy.target.asVector()
 	newEye.subtract(orintatedVector)
-
-	camera_copy = app_.activeViewport.camera
 	camera_copy.eye = newEye.asPoint()
 	reAssignCamera(camera_copy)
 
 
+
+def reAssignCamera(cameraCopy:adsk.core.Camera):
+	cameraCopy.isSmoothTransition = True
+	app_.activeViewport.camera = cameraCopy
+	adsk.doEvents()
+	ui_.activeSelections.clear()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def createBuiltInCommands():
 	inspectPanel = ui_.allToolbarPanels.itemById('ToolsInspectPanel')
-	def create(controls:adsk.core.ToolbarControls, cmd_def_id, text, tooltip, resource_folder, handler):
-		# The cmd_def_id must never change during development of the add-in as users hotkeys will map to the command definition ID.
-		getDelete(ui_.commandDefinitions,cmd_def_id)
-		cmd_def = checkIcon(ui_.commandDefinitions.addButtonDefinition( cmd_def_id, text, tooltip, resource_folder))
-		events_manager_.add_handler(cmd_def.commandCreated, callback=handler)
-		return controls.addCommand(cmd_def)
-	
 
-	create(inspectPanel.controls,
+	AlignView= CommandRef(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinAlignView',
 			'Change Cameras Up',
-			'',
-			'./resources/repeat',
-			alignViewHandler)
+			'./resources/repeat','')
+	events_manager_.add_handler(AlignView.definition.commandCreated, alignViewHandler)
 
-	create(inspectPanel.controls,
+	ChangeView= CommandRef(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinChangeView',
 			'Change Cameras Forwards',
-			'',
-			'./resources/save',
-			changeViewAxis)
+			'./resources/save','')
+	events_manager_.add_handler(ChangeView.definition.commandCreated, changeViewAxis)
+
 
 def removeBuiltInCommands():
 	inspectPanel = ui_.allToolbarPanels.itemById('ToolsInspectPanel')
