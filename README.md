@@ -35,15 +35,15 @@ AnyMacro is free, but if you particually like it and wish to see more, consider 
 ## Usage
 When enabled, the add-in records the resulting commands of actions that the user performs and collects them in the *AnyMacro* menu. If not stopped, the recording stops automatically after a number of commands, to avoid any performance degradation when the user is not setting up macros.
 
-\* *Not all actions in Fusion 360™ result in "Commands" and some commands are not usable on their own. For example, *Pick Circle/Arc Tangent* does not generate a "Command" and *Roll History Marker Here* is triggered when clicking rewind in the history, but rewind actually first selects an item and then rolls.*
+\* *Not all actions in Fusion 360™ result in "Commands" and some commands are not usable on their own. For example, **Pick Circle/Arc Tangent** does not generate a "Command" and **Roll History Marker Here** is triggered when clicking rewind in the history, but rewind actually first selects an item and then rolls.*
 
 ![Screenshot](tracking_screenshot.png)
 
 ### -Creating Macros
-* Click *Start recording* and then launch a series of commands in the order you desire for your macro.
-* If the commands you chose are able to be recorded, they will be added underneath the record command in the *Command Recorder* dropdown at the top of the *AnyMacro* panel.
+* Click ***Start recording*** and then launch a series of commands in the order you desire for your macro.
+* If the commands you chose are able to be recorded, they will be added underneath the record command in the ***Command Recorder*** dropdown at the top of the *AnyMacro* panel.
 * Should you desire to remove a command, you need just click its name within the dropdown.
-* Once you stop recording, two new options: *Save Macro* and *Reset Recording*; should appear just under the record command along with a test macro at the bottom of the list. The test macro allows you to make sure everything works before you save it and see the changes you make to the command list.
+* Once you stop recording, two new options: ***Save Macro*** and ***Reset Recording***; should appear just under the record command along with a test macro at the bottom of the list. The test macro allows you to make sure everything works before you save it and see the changes you make to the command list.
 * Finally, once you are satisfied with the macro, hit the *Save Macro* button. This will display a prompt that will ask you to name your macro. There are few restrictions on the name, however, make sure there are *some* numbers or letters as its ID will be created using the `str.isidentifier()` method for each character.
 * You should now find your command under the *Custom Macros* dropdown. You can run, assign a key-combination, and delete it right from the menu. Additionaly, the macro is persistant, meaning it will remain between sessions of fusion360 and only needs to be created once.
 
@@ -53,7 +53,7 @@ When enabled, the add-in records the resulting commands of actions that the user
 * A prompt will appear asking if you are sure you wish to remove it.
 * Hit `OK` and the macro is now gone.
 
-### -Creating Macros From API   (*`EXPEREMENTAL`*)
+### -Creating Macros From API   (***`EXPEREMENTAL`***)
 * Create a dictionary representing your macro object.
 * Set its key: *`name`* to the desired name for the macro.
 * Set its key: *`id`* to the desired id. (Must be "`A-z|0-9|_`", no spaces!)
@@ -69,10 +69,10 @@ When enabled, the add-in records the resulting commands of actions that the user
 		id='TestMacroId',
 		executeList=['SketchCreate',]
 	)
-	app_.fireCustomEvent('AnyMacro_Add_Macro', json.dumps(TestMacro))
+	Application.fireCustomEvent('AnyMacro_Add_Macro', json.dumps(TestMacro))
 
 ## Built-in Objects
-The *AnyMacro* add-in includes two built-in commands that are used in the built-in macro *'`Align Camera`'*. These commands can be found under the menu item *`TOOLS`* -> *`INSPECT`*. The macro demonstrates how these two commands can be chained.
+The ***AnyMacro*** add-in includes two built-in commands that are used in the built-in macro *'`Align Camera`'*. These commands can be found under the menu item *`TOOLS`* -> *`INSPECT`*. The macro demonstrates how these two commands can be chained.
 
 Built-in commands include:
  * Change Cameras Up
