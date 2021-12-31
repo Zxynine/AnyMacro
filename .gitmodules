@@ -1,0 +1,3 @@
+[submodule "AddinLib"]
+	path = AddinLib
+	url = https://https://github.com/Zxynine/AddinLib.git
