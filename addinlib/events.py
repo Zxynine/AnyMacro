@@ -32,7 +32,7 @@ import sys, time
 import threading
 from typing import List
 # Avoid Fusion namespace pollution
-from . import error, utils
+from . import error, utils, AppObjects
 
 
 
@@ -59,7 +59,7 @@ class EventsManager:
 		#Declared in init to allow multiple commands to use a single lib
 		self.handlers: List[LinkedHandler] = []
 		self.custom_event_names = []
-		self.app, self.ui = utils.AppObjects()
+		self.app, self.ui = AppObjects.GetAppUI()
 
 		self.next_delay_id = 0
 		self.delayed_funcs = {}

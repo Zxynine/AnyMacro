@@ -6,7 +6,7 @@
 import traceback, getpass
 import re, sys
 # Avoid Fusion namespace pollution
-from . import utils
+from . import utils, AppObjects
 from functools import wraps
 
 class ErrorCatcher():
@@ -49,7 +49,7 @@ class ErrorCatcher():
 	def __enter__(self): self.caller_file = utils.get_caller_path()
 	def __exit__(self, exctype, value, traceb):
 		if not traceb: return
-		app ,ui = utils.AppObjects()
+		app ,ui = AppObjects.GetAppUI()
 
 		# Only keep the AddIns/Scripts part of the path
 		caller = re.sub(r'.*API[/\\]', '', self.caller_file)

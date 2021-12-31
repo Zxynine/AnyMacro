@@ -25,6 +25,7 @@
 
 import adsk.core, adsk.fusion, adsk.cam
 from enum import IntEnum
+from . import AppObjects
 
 class TimelineStatus(IntEnum):
 	OK = 0
@@ -102,3 +103,20 @@ def get_occurrence_type(timeline_obj:adsk.fusion.TimelineObject):
 		return OccurrenceType.BODIES_COMP
 
 	return OccurrenceType.UNKNOWN_COMP
+
+
+class GroupManager:
+	"""A context manager that lets you easily group timeline actions. Just use "with Groupmanager('GroupName'):" before any actions"""
+	def __init__(self, groupName, timeline:adsk.fusion.Timeline = None):
+		self.isParametric = AppObjects.is_parametric_mode()
+		if not self.isParametric: return
+		self.timeline = timeline or AppObjects.GetDesign().timeline
+		self.groupName = str(groupName)
+	def __enter__(self):
+		if not self.isParametric: return
+		self.startIndex = self.timeline.markerPosition
+		return self.timeline
+	def __exit__(self, ExType, ExVal, ExTrace):
+		if not (self.isParametric and ExType is None): return False
+		timelineObj = self.timeline.timelineGroups.add(int(self.startIndex), int(self.timeline.markerPosition)-1)
+		timelineObj.name = self.groupName

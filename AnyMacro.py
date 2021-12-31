@@ -32,8 +32,8 @@ import os.path as path,json
 
 
 # Import relative path to avoid namespace pollution
-from .addinlib import utils, events, manifest, error, settings, geometry
-utils.ReImport_List(events, manifest, error, settings, geometry, utils)
+from .addinlib import utils, events, manifest, error, settings, geometry, AppObjects
+utils.ReImport_List(AppObjects, events, manifest, error, settings, geometry, utils)
 
 
 NAME = 'AnyMacro'
@@ -361,7 +361,7 @@ def clear_record_handler(args:adsk.core.CommandCreatedEventArgs):
 @error_catcher_
 def run(context):
 	global app_, ui_, panel_
-	app_,ui_ = utils.AppObjects()
+	app_,ui_ = AppObjects.GetAppUI()
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	# Add the command to the tab.
 	panels = ui_.allToolbarTabs.itemById('ToolsTab').toolbarPanels

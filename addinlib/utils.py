@@ -29,6 +29,8 @@ import inspect
 import os, re, json
 import importlib
 
+from . import AppObjects
+
 def short_class(obj:adsk.core.Base):
     '''Returns shortened name of Object class'''
     return obj.classType().split('::')[-1]
@@ -60,7 +62,7 @@ def get_fusion_ui_resource_folder():
     '''
     global _resFolder
     if not _resFolder:
-        _resFolder = GetApp().userInterface.workspaces.itemById('FusionSolidEnvironment').resourceFolder.replace('/Environment/Model', '')
+        _resFolder = AppObjects.GetUi().workspaces.itemById('FusionSolidEnvironment').resourceFolder.replace('/Environment/Model', '')
     return _resFolder
 
 def get_caller_path():
@@ -95,7 +97,7 @@ def is_parametric_mode():
 	# UserInterface.ActiveWorkspace throws when it is called from DocumentActivatedHandler
 	# during Fusion 360 start-up(?). Checking for app_.isStartupComplete does not help.
 	try:
-		app_, ui_ = AppObjects()
+		app_, ui_ = AppObjects.GetAppUI()
 		if ui_.activeWorkspace.id == 'FusionSolidEnvironment':
 			design = adsk.fusion.Design.cast(app_.activeProduct)
 			return bool(design and design.designType == adsk.fusion.DesignTypes.ParametricDesignType)
@@ -105,25 +107,25 @@ def is_parametric_mode():
 #This is a context manager that just ignores what happens
 class Ignore:__enter__=lambda cls:cls;__exit__=lambda *args:True
 
-def AppObjects(): return GetApp(),GetUi()
-def GetApp(): return adsk.core.Application.cast(adsk.core.Application.get())
-def GetUi(): return GetApp().userInterface
+# def AppObjects(): return GetApp(),GetUi()
+# def GetApp(): return adsk.core.Application.cast(adsk.core.Application.get())
+# def GetUi(): return GetApp().userInterface
 
 
 
 class CustomEvents:
 	def Create(CustomEventID:str):
-		app = GetApp()
+		app = AppObjects.GetApp()
 		app.unregisterCustomEvent(CustomEventID)
 		return app.registerCustomEvent(CustomEventID)
 		
 	def Fire(CustomEventID:str, additionalInfo='', toJsonStr=False):
 		if not toJsonStr: strInfo = additionalInfo
 		else: strInfo = json.dumps(additionalInfo)
-		return GetApp().fireCustomEvent(CustomEventID, strInfo)
+		return AppObjects.GetApp().fireCustomEvent(CustomEventID, strInfo)
 
 	def Remove(CustomEventID:str):
-		return GetApp().unregisterCustomEvent(CustomEventID)
+		return AppObjects.GetApp().unregisterCustomEvent(CustomEventID)
 
 
 
@@ -138,13 +140,13 @@ def ifDelete(obj:adsk.core.CommandControl): return obj.deleteMe() if exists(obj)
 def getDelete(collection:adsk.core.CommandDefinitions,objId): ifDelete(collection.itemById(objId))
 def deleteAll(*objs): return all(map(ifDelete,objs))
 
-def executeCommand(cmdName):  GetUi().commandDefinitions.itemById(cmdName).execute()
+def executeCommand(cmdName):  AppObjects.GetUi().commandDefinitions.itemById(cmdName).execute()
 
 def doEvents(): return adsk.doEvents()
 
 
 class camera:
-	def get(): return GetApp().activeViewport.camera
+	def get(): return AppObjects.GetApp().activeViewport.camera
 	
 	def viewDirection(camera_copy:adsk.core.Camera):
 		camera_copy = camera_copy or camera.get()
@@ -152,5 +154,5 @@ class camera:
 
 	def updateCamera(camera_copy:adsk.core.Camera, smoothTransition=True):
 		camera_copy.isSmoothTransition = smoothTransition
-		GetApp().activeViewport.camera = camera_copy
+		AppObjects.GetApp().activeViewport.camera = camera_copy
 		doEvents()
