@@ -32,7 +32,7 @@ import os.path as path,json
 
 
 # Import relative path to avoid namespace pollution
-from .addinlib import utils, events, manifest, error, settings, geometry, AppObjects
+from .AddinLib import utils, events, manifest, error, settings, geometry, AppObjects
 utils.ReImport_List(AppObjects, events, manifest, error, settings, geometry, utils)
 
 
