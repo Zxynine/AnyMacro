@@ -33,8 +33,9 @@ def GetAppUI(): return GetApp(),GetUi()
 def GetApp(): return adsk.core.Application.cast(adsk.core.Application.get())
 def GetUi(): return GetApp().userInterface
 
-def GetDesign()->adsk.fusion.Design: return adsk.fusion.Design.cast(GetApp().activeProduct)
 
+
+def GetDesign()->adsk.fusion.Design: return adsk.fusion.Design.cast(GetApp().activeProduct)
 
 def is_parametric_mode():
 	# Checking workspace type in DocumentActivated handler fails since Fusion 360 v2.0.10032
