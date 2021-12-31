@@ -120,8 +120,9 @@ Be aware of the following quirks in Fusion 360™.
 ## Changelog
 * v 1.0.1
   * Fixed bug with built-in camera command where the camera would break if an orthagonal forwards was selected. 
-  * Reduced excess code and added additional util functions
   * Fixed bug causing command queue to throw a silent error
+  * Reduced excess code and added additional util functions
+  * Added in a geometry library to the code utilities
 * v 1.0.0
   * Original Implementation 
 

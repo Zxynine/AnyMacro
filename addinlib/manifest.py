@@ -33,3 +33,7 @@ def read(directory=None):
 	directoryPath = directory or pathlib.Path(utils.get_caller_path()).parent
 	manifest_path = next(pathlib.Path(directoryPath).glob('*.manifest'))
 	with open(manifest_path, encoding='utf-8') as file:	return json.load(file)
+
+def getVersion(directory=None):
+	directoryPath = directory or pathlib.Path(utils.get_caller_path()).parent
+	return str(read(directoryPath)['version'])

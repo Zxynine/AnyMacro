@@ -65,23 +65,20 @@ def get_fusion_ui_resource_folder():
 
 def get_caller_path():
     '''Gets the filename of the file calling the function
-    that called this function. Used by the library.
-    
-    That is, is nested in "two steps".
-    '''
-    caller_file = os.path.abspath(inspect.stack()[2][1])
+    that called this function. That is, is nested in "two steps". '''
+    caller_file = os.path.abspath(inspect.stack(0)[2][1])
     return caller_file
 
 def get_file_path():
     '''Gets the filename of the function that called this
     function.'''
-    caller_file = os.path.abspath(inspect.stack()[1][1])
+    caller_file = os.path.abspath(inspect.stack(0)[1][1])
     return caller_file
 
 def get_file_dir():
     '''Gets the directory containing the file which function
     called this function.'''
-    caller_file = os.path.dirname(os.path.abspath(inspect.stack()[1][1]))
+    caller_file = os.path.dirname(os.path.abspath(inspect.stack(0)[1][1]))
     return caller_file
 
 # Allows for re-import of multiple modules
@@ -142,3 +139,18 @@ def getDelete(collection:adsk.core.CommandDefinitions,objId): ifDelete(collectio
 def deleteAll(*objs): return all(map(ifDelete,objs))
 
 def executeCommand(cmdName):  GetUi().commandDefinitions.itemById(cmdName).execute()
+
+def doEvents(): return adsk.doEvents()
+
+
+class camera:
+	def get(): return GetApp().activeViewport.camera
+	
+	def viewDirection(camera_copy:adsk.core.Camera):
+		camera_copy = camera_copy or camera.get()
+		return camera_copy.eye.vectorTo(camera_copy.target)
+
+	def updateCamera(camera_copy:adsk.core.Camera, smoothTransition=True):
+		camera_copy.isSmoothTransition = smoothTransition
+		GetApp().activeViewport.camera = camera_copy
+		doEvents()

@@ -32,12 +32,12 @@ import os.path as path,json
 
 
 # Import relative path to avoid namespace pollution
-from .addinlib import utils, events, manifest, error,settings
-utils.ReImport_List(events, manifest, error, settings, utils)
+from .addinlib import utils, events, manifest, error, settings, geometry
+utils.ReImport_List(events, manifest, error, settings, geometry, utils)
 
 
 NAME = 'AnyMacro'
-VERSION = str(manifest.read()["version"])
+VERSION = manifest.getVersion()
 FILE_DIR = path.dirname(path.realpath(__file__))
 VERSION_INFO = f'({NAME} v {VERSION})'
 CMD_DESCRIPTION = 'Enables or disables the tracking of commands to create a macro.'
@@ -251,8 +251,15 @@ class Macro:
 
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-class MacroPrecurser:
+class CommandTracker:
 	deleteID = 0
+	tracking_ = False
+	@classmethod
+	def toggle(cls,value):
+		cls.tracking_ = value
+		update_enable_text()
+		checkQueue()
+	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def __init__(self,): 
 		self.executeList: Deque[ReferenceBase] = deque()
@@ -276,8 +283,8 @@ class MacroPrecurser:
 
 	def log(self, cmdDef: adsk.core.CommandDefinition):
 		self.lastID = cmdDef.id
-		newId = f'{cmdDef.id}_Macro_Fragment_{MacroPrecurser.deleteID}'
-		MacroPrecurser.deleteID +=1
+		newId = f'{cmdDef.id}_Macro_Fragment_{CommandTracker.deleteID}'
+		CommandTracker.deleteID +=1
 		self.cmdIds[newId] = cmdDef.id
 
 		getDelete(ui_.commandDefinitions, newId)
@@ -320,16 +327,7 @@ class MacroPrecurser:
 
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-currentMacro : MacroPrecurser = None
-
-class CommandTracker:
-	tracking_ = False
-	@classmethod
-	def toggle(cls,value):
-		cls.tracking_ = value
-		update_enable_text()
-		checkQueue()
-
+currentMacro : CommandTracker = None
 
 def checkQueue(): #This determines whether the save button is visible (only visible after recording)
 	viewValue = exists(currentMacro) and currentMacro.count > 0
@@ -341,7 +339,7 @@ def checkQueue(): #This determines whether the save button is visible (only visi
 def enable_cmd_def__created_handler(args: adsk.core.CommandCreatedEventArgs):
 	def enable_command_execute_handler(args:adsk.core.CommandEventArgs):
 		global currentMacro
-		if currentMacro is None: currentMacro = MacroPrecurser()
+		if currentMacro is None: currentMacro = CommandTracker()
 		else: currentMacro.startTracking() if (not CommandTracker.tracking_) else currentMacro.stopTracking()
 	events_manager_.add_handler(args.command.execute, callback=enable_command_execute_handler)
 
@@ -486,50 +484,24 @@ def removeAddMacroCustomEvent():
 	
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-
-
-finiteGometry = (adsk.fusion.BRepEdge, adsk.fusion.SketchLine)
-infiniteGeometry = (adsk.fusion.ConstructionAxis,)
+def reAssignCamera(cameraCopy:adsk.core.Camera):
+	utils.camera.updateCamera(cameraCopy,True)
+	ui_.activeSelections.clear()
 
 def getLineDirection(prompt):
 	line = ui_.selectEntity(prompt,'LinearEdges,SketchLines,ConstructionLines').entity
-	if isinstance(line, finiteGometry):
-		if isinstance(line, adsk.fusion.BRepEdge):
-			start,end = line.startVertex, line.endVertex
-		elif isinstance(line, adsk.fusion.SketchLine):
-			start,end = line.startSketchPoint, line.endSketchPoint
-		lineDirection = start.geometry.vectorTo(end.geometry)
-	elif isinstance(line, infiniteGeometry):
-		if isinstance(line, adsk.fusion.ConstructionAxis):
-			lineDirection = line.geometry.direction
-	else: raise TypeError('Incorrect line Type.')
-	return lineDirection
-
-def projectVectors(fromVec:adsk.core.Vector3D,toVec:adsk.core.Vector3D, normalised=False):
-	projection = toVec.copy()
-	projection.scaleBy(fromVec.dotProduct(toVec) / fromVec.length**2)
-	if normalised: projection.normalize()
-	return projection 
-
-def getNormal(unNormVec:adsk.core.Vector3D,scale=1):
-	newVec = unNormVec.copy()
-	newVec.normalize()
-	newVec.scaleBy(scale)
-	return newVec
-
-def getCameraDirection(camera:adsk.core.Camera):
-	return camera.eye.vectorTo(camera.target)
+	return geometry.lines.getDirection(line)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isRepeatable = False
 	args.command.isExecutedWhenPreEmpted = False
 	lineDirection = getLineDirection('Please select a line represinting the "up" direction')
-	upDirection = app_.activeViewport.camera.upVector.copy()
+	upDirection = utils.camera.get().upVector.copy()
+	camera_copy = utils.camera.get()
 
-	orintatedVector = projectVectors(upDirection,lineDirection,True)
+	orintatedVector = geometry.vectors.project(upDirection,lineDirection,True)
 
-	camera_copy = app_.activeViewport.camera
 	camera_copy.upVector = orintatedVector
 	reAssignCamera(camera_copy)
 
@@ -538,15 +510,14 @@ def changeViewAxis(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isRepeatable = False
 	args.command.isExecutedWhenPreEmpted = False
 	lineDirection = getLineDirection('Please select a line represinting the "forwards" direction')
-	cameraDirection = getCameraDirection(app_.activeViewport.camera)
-
-	camera_copy = app_.activeViewport.camera
+	cameraDirection = utils.camera.viewDirection(utils.camera.get())
+	camera_copy = utils.camera.get()
 
 	if cameraDirection.isPerpendicularTo(lineDirection):#Prevents perpendicular angles from failing
-		orintatedVector = getNormal(lineDirection)
+		orintatedVector = geometry.vectors.normalOf(lineDirection)
 		if camera_copy.upVector.isParallelTo(lineDirection):
-			camera_copy.upVector = getNormal(cameraDirection)
-	else: orintatedVector = projectVectors(cameraDirection,lineDirection,True)
+			camera_copy.upVector = geometry.vectors.normalOf(cameraDirection)
+	else: orintatedVector = geometry.vectors.project(cameraDirection,lineDirection,True)
 	orintatedVector.scaleBy(cameraDirection.length)
 
 	newEye = camera_copy.target.asVector()
@@ -555,12 +526,6 @@ def changeViewAxis(args: adsk.core.CommandCreatedEventArgs):
 	reAssignCamera(camera_copy)
 
 
-
-def reAssignCamera(cameraCopy:adsk.core.Camera):
-	cameraCopy.isSmoothTransition = True
-	app_.activeViewport.camera = cameraCopy
-	adsk.doEvents()
-	ui_.activeSelections.clear()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def createBuiltInCommands():
