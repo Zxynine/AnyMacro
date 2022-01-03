@@ -489,14 +489,16 @@ def reAssignCamera(cameraCopy:adsk.core.Camera):
 	ui_.activeSelections.clear()
 
 def getLineDirection(prompt):
-	line = ui_.selectEntity(prompt,'LinearEdges,SketchLines,ConstructionLines').entity
-	return geometry.lines.getDirection(line)
+	try: line = ui_.selectEntity(prompt,'LinearEdges,SketchLines,ConstructionLines')
+	except: return None
+	if line: return geometry.lines.getDirection(line.entity)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isRepeatable = False
 	args.command.isExecutedWhenPreEmpted = False
 	lineDirection = getLineDirection('Please select a line represinting the "up" direction')
+	if not lineDirection: return
 	upDirection = utils.camera.get().upVector.copy()
 	camera_copy = utils.camera.get()
 
@@ -510,6 +512,7 @@ def changeViewAxis(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isRepeatable = False
 	args.command.isExecutedWhenPreEmpted = False
 	lineDirection = getLineDirection('Please select a line represinting the "forwards" direction')
+	if not lineDirection: return
 	cameraDirection = utils.camera.viewDirection(utils.camera.get())
 	camera_copy = utils.camera.get()
 
