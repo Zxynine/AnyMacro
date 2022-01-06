@@ -107,9 +107,7 @@ class ReferenceBase:
 	def __init__(self,cmdDef:adsk.core.CommandDefinition=None, cmdCtrl: Union[adsk.core.CommandControl,adsk.core.DropDownControl]=None):
 		self.definition = cmdDef
 		self.control = cmdCtrl
-		if exists(cmdCtrl): self.id = cmdCtrl.id
-		elif exists(cmdDef): self.id = cmdDef.id
-		else: self.id = None
+		self.id = cmdCtrl.id if exists(cmdCtrl) else cmdDef.id if exists(cmdDef) else None
 	def deleteMe(self):	utils.ifDelete(self.control); self.definition=self.control=None
 
 class CommandRef(ReferenceBase):
@@ -539,15 +537,21 @@ class ViewOrientations:
 	Right:adsk.core.Vector3D= Direction((1,0,0), (1,0,0))
 	Front:adsk.core.Vector3D= Direction((0,0,-1), (0,-1,0))
 	Back:adsk.core.Vector3D= Direction((0,0,1), (0,1,0))
+	
+	OrientationToUp = {
+		Top:Front,
+		Bottom:Back,
+		Left:Top,
+		Right:Top,
+		Front:Top,
+		Back:Top}
 
 def TryViewOrientation(args, orientation=None, localView = True):
 	camera = utils.camera.get()
 	eyeVector= utils.camera.viewDirection(camera)
-	upDirection = ViewOrientations.Top
 
 	orientation = ViewOrientations.Front
-	if orientation == ViewOrientations.Top: upDirection = ViewOrientations.Front
-	elif orientation == ViewOrientations.Bottom: upDirection = ViewOrientations.Back
+	upDirection = ViewOrientations.OrientationToUp.get(orientation)
 
 	orientation.scaleBy(eyeVector.length)
 	newEye = camera.target.copy()
