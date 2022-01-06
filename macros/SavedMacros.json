@@ -6,5 +6,35 @@
       "zxynine_anymacro_BuiltinChangeView",
       "zxynine_anymacro_BuiltinAlignView"
     ]
+  },
+  {
+    "name": "",
+    "id": "AnyMacro_",
+    "executeList": [
+      "ConstraintTangent",
+      "ConstraintEqual",
+      "ConstraintParallel",
+      "ConstraintParallel"
+    ]
+  },
+  {
+    "name": "",
+    "id": "AnyMacro_",
+    "executeList": [
+      "ConstraintTangent",
+      "ConstraintEqual",
+      "ConstraintParallel",
+      "ConstraintEqual",
+      "ConstraintEqual"
+    ]
+  },
+  {
+    "name": "",
+    "id": "AnyMacro_",
+    "executeList": [
+      "ConstraintEqual",
+      "ConstraintTangent",
+      "ConstraintTangent"
+    ]
   }
 ]

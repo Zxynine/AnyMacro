@@ -24,6 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from os import name
 import adsk.core, adsk.fusion, adsk.cam
 
 from collections import deque
@@ -205,9 +206,13 @@ class Macro:
 		self.updateIdentity(macroId,macroName)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	def updateIdentity(self,MacroId=None,MacroName=None):
-		self.name = MacroName or ui_.inputBox('Enter macro name:','Naming Macro','')[0]
-		self.id = MacroId or f'AnyMacro_{utils.toIdentifier(self.name)}'
+		if MacroName is None:
+			MacroName, cancelled = ui_.inputBox('Enter macro name:','Naming Macro','')
+			if cancelled: return False
+		self.name = MacroName
+		self.id = MacroId or f'AnyMacro_{utils.toIdentifier(MacroName)}'
 		self.updateCommands(self.parentControls)
+		return True
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	def updateCommands(self, parentControls:adsk.core.ToolbarControls):
 		self.removeCommands()
@@ -305,9 +310,9 @@ class CommandTracker:
 		if self.count == 0: return
 		self.currentMacro.isBuilt = True #Enables the remove handler to update the json
 		self.currentMacro.parentControls = macro_dropdown_.dropdownControls
-		self.currentMacro.updateIdentity() #Forces the macro to ask for a name and update
-		macrosToJson() #Saves all current macros
-		self.clear()
+		if self.currentMacro.updateIdentity(): #Forces the macro to ask for a name and update
+			macrosToJson() #Saves all current macros
+			self.clear()
 
 	def clear(self): 
 		self.currentMacro = None
@@ -389,7 +394,7 @@ def stop(context):
 
 def add_primary_commands(parent:adsk.core.ToolbarPanel):
 	global tracking_dropdown_
-	tracking_dropdown_ = DropdownRef(parent.controls, TRACKING_DROPDOWN_ID, 'Command Recorder', './resources/tracker')
+	tracking_dropdown_ = DropdownRef(parent.controls, TRACKING_DROPDOWN_ID, 'Macro Recorder', './resources/tracker')
 	add_record_dropdown(tracking_dropdown_.control.controls)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global macro_dropdown_
@@ -472,6 +477,90 @@ def removeAddMacroCustomEvent():
 
 
 
+# class ViewOrientations:
+# 	Back= {'view': 1, 'sign': 1, 'tooltip': 'de l\'', 'name': 'Arrière'}
+# 	Bottom= {'view': 2, 'sign': -1, 'tooltip': 'du ', 'name': 'Bas'}
+# 	Left= {'view': 0, 'sign': -1, 'tooltip': 'de la ', 'name': 'Gauche'}
+# 	Right= {'view': 0, 'sign': 1, 'tooltip': 'de la ', 'name': 'Droite'}
+# 	Top= {'view': 2, 'sign': 1, 'tooltip': 'du ', 'name': 'Haut'}
+# 	Front= {'view': 1, 'sign': -1, 'tooltip': 'de l\'', 'name': 'Avant'}
+
+# def TryViewOrientation(args, orientation:ViewOrientations= ViewOrientations.Front):
+# 	viewCoordinate = orientation['view']
+# 	viewSign = orientation['sign']
+# 	camera = utils.camera.get()
+# 	upVector = camera.upVector
+# 	eye = camera.eye
+# 	target = camera.target
+# 	eyeVector= utils.camera.viewDirection(camera)
+
+# 	targetArray = target.asArray()
+# 	eyeArray = eye.asArray()
+
+# 	eyeList = list(eyeArray[:3])
+# 	otherCoords = [i for i in range(3) if i != viewCoordinate]
+# 	baseVectors = [[0]*3]*4
+
+# 	for i, coord in enumerate(otherCoords):
+# 		eyeList[coord] = targetArray[coord]
+# 		baseVectors[2*i][coord] = 1
+# 		baseVectors[2*i +1][coord] = -1
+
+# 	maxCrossProduct = 0
+# 	for vector in baseVectors:
+# 		baseVector: adsk.core.Vector3D = adsk.core.Vector3D.create()
+# 		baseVector.setWithArray(vector)
+# 		crossProduct = upVector.dotProduct(baseVector)
+# 		if crossProduct >= maxCrossProduct:
+# 			maxCrossProduct = crossProduct
+# 			camera.upVector = baseVector
+
+# 	eyeList[viewCoordinate] = targetArray[viewCoordinate] + viewSign*eyeVector.length
+# 	eye.setWithArray(eyeList)
+# 	camera.eye = eye
+# 	utils.camera.updateCamera(camera)
+
+
+
+class ViewOrientations:
+	class Direction:
+		YAxisUp =  adsk.core.DefaultModelingOrientations.YUpModelingOrientation
+		ZAxisUp =  adsk.core.DefaultModelingOrientations.ZUpModelingOrientation
+		def GetCurrentOrientation(self): return app_.preferences.generalPreferences.defaultModelingOrientation
+		def __init__(self, Yup,Zup):
+			self.direction = { self.YAxisUp:Yup, self.ZAxisUp:Zup}
+		def __get__(self,instance,owner):
+			return adsk.core.Vector3D.create(*self.direction.get(self.GetCurrentOrientation()))
+		def __set__(self,instance,value): return False
+	
+	Top:adsk.core.Vector3D= Direction((0,1,0), (0,0,1))
+	Bottom:adsk.core.Vector3D= Direction((0,-1,0), (0,0,-1))
+	Left:adsk.core.Vector3D= Direction((-1,0,0), (-1,0,0))
+	Right:adsk.core.Vector3D= Direction((1,0,0), (1,0,0))
+	Front:adsk.core.Vector3D= Direction((0,0,-1), (0,-1,0))
+	Back:adsk.core.Vector3D= Direction((0,0,1), (0,1,0))
+
+def TryViewOrientation(args, orientation=None, localView = True):
+	camera = utils.camera.get()
+	eyeVector= utils.camera.viewDirection(camera)
+	upDirection = ViewOrientations.Top
+
+	orientation = ViewOrientations.Front
+	if orientation == ViewOrientations.Top: upDirection = ViewOrientations.Front
+	elif orientation == ViewOrientations.Bottom: upDirection = ViewOrientations.Back
+
+	orientation.scaleBy(eyeVector.length)
+	newEye = camera.target.copy()
+	newEye.translateBy(orientation)
+
+	camera.upVector = upDirection
+	camera.eye = newEye
+
+	utils.camera.updateCamera(camera)
+
+
+
+
 
 
 
@@ -499,8 +588,8 @@ def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isExecutedWhenPreEmpted = False
 	lineDirection = getLineDirection('Please select a line represinting the "up" direction')
 	if not lineDirection: return
-	upDirection = utils.camera.get().upVector.copy()
 	camera_copy = utils.camera.get()
+	upDirection = camera_copy.upVector.copy()
 
 	orintatedVector = geometry.vectors.project(upDirection,lineDirection,True)
 
@@ -513,8 +602,8 @@ def changeViewAxis(args: adsk.core.CommandCreatedEventArgs):
 	args.command.isExecutedWhenPreEmpted = False
 	lineDirection = getLineDirection('Please select a line represinting the "forwards" direction')
 	if not lineDirection: return
-	cameraDirection = utils.camera.viewDirection(utils.camera.get())
 	camera_copy = utils.camera.get()
+	cameraDirection = utils.camera.viewDirection(camera_copy)
 
 	if cameraDirection.isPerpendicularTo(lineDirection):#Prevents perpendicular angles from failing
 		orintatedVector = geometry.vectors.normalOf(lineDirection)
@@ -545,11 +634,19 @@ def createBuiltInCommands():
 			'Change Cameras Forwards',
 			'./resources/save','')
 	events_manager_.add_handler(ChangeView.definition.commandCreated, changeViewAxis)
+	
+	ChangeView= CommandRef(inspectPanel.controls,
+			'zxynine_anymacro_BuiltinChangeViewOrientation',
+			'Change Cameras View Orientation',
+			'./resources/save','')
+	events_manager_.add_handler(ChangeView.definition.commandCreated, TryViewOrientation)
 
 
 def removeBuiltInCommands():
 	inspectPanel = ui_.allToolbarPanels.itemById('ToolsInspectPanel')
 	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinAlignView')
 	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeView')
+	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeViewOrientation')
+	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeViewOrientation')
 	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinAlignView')
 	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeView')
