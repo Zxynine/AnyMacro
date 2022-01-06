@@ -475,50 +475,6 @@ def removeAddMacroCustomEvent():
 
 
 
-# class ViewOrientations:
-# 	Back= {'view': 1, 'sign': 1, 'tooltip': 'de l\'', 'name': 'Arrière'}
-# 	Bottom= {'view': 2, 'sign': -1, 'tooltip': 'du ', 'name': 'Bas'}
-# 	Left= {'view': 0, 'sign': -1, 'tooltip': 'de la ', 'name': 'Gauche'}
-# 	Right= {'view': 0, 'sign': 1, 'tooltip': 'de la ', 'name': 'Droite'}
-# 	Top= {'view': 2, 'sign': 1, 'tooltip': 'du ', 'name': 'Haut'}
-# 	Front= {'view': 1, 'sign': -1, 'tooltip': 'de l\'', 'name': 'Avant'}
-
-# def TryViewOrientation(args, orientation:ViewOrientations= ViewOrientations.Front):
-# 	viewCoordinate = orientation['view']
-# 	viewSign = orientation['sign']
-# 	camera = utils.camera.get()
-# 	upVector = camera.upVector
-# 	eye = camera.eye
-# 	target = camera.target
-# 	eyeVector= utils.camera.viewDirection(camera)
-
-# 	targetArray = target.asArray()
-# 	eyeArray = eye.asArray()
-
-# 	eyeList = list(eyeArray[:3])
-# 	otherCoords = [i for i in range(3) if i != viewCoordinate]
-# 	baseVectors = [[0]*3]*4
-
-# 	for i, coord in enumerate(otherCoords):
-# 		eyeList[coord] = targetArray[coord]
-# 		baseVectors[2*i][coord] = 1
-# 		baseVectors[2*i +1][coord] = -1
-
-# 	maxCrossProduct = 0
-# 	for vector in baseVectors:
-# 		baseVector: adsk.core.Vector3D = adsk.core.Vector3D.create()
-# 		baseVector.setWithArray(vector)
-# 		crossProduct = upVector.dotProduct(baseVector)
-# 		if crossProduct >= maxCrossProduct:
-# 			maxCrossProduct = crossProduct
-# 			camera.upVector = baseVector
-
-# 	eyeList[viewCoordinate] = targetArray[viewCoordinate] + viewSign*eyeVector.length
-# 	eye.setWithArray(eyeList)
-# 	camera.eye = eye
-# 	utils.camera.updateCamera(camera)
-
-
 
 class ViewOrientations:
 	class Direction:
@@ -630,27 +586,27 @@ def createBuiltInCommands():
 	AlignView= CommandRef(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinAlignView',
 			'Change Cameras Up',
-			'./resources/repeat','')
+			'./resources/noicon','')
 	events_manager_.add_handler(AlignView.definition.commandCreated, alignViewHandler)
 
 	ChangeView= CommandRef(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinChangeView',
 			'Change Cameras Forwards',
-			'./resources/save','')
+			'./resources/noicon','')
 	events_manager_.add_handler(ChangeView.definition.commandCreated, changeViewAxis)
 	
-	ChangeView= CommandRef(inspectPanel.controls,
-			'zxynine_anymacro_BuiltinChangeViewOrientation',
-			'Change Cameras View Orientation',
-			'./resources/save','')
-	events_manager_.add_handler(ChangeView.definition.commandCreated, TryViewOrientation)
+	# ChangeView= CommandRef(inspectPanel.controls,
+	# 		'zxynine_anymacro_BuiltinChangeViewOrientation',
+	# 		'Change Cameras View Orientation',
+	# 		'./resources/save','')
+	# events_manager_.add_handler(ChangeView.definition.commandCreated, TryViewOrientation)
 
 
 def removeBuiltInCommands():
 	inspectPanel = ui_.allToolbarPanels.itemById('ToolsInspectPanel')
 	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinAlignView')
 	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeView')
-	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeViewOrientation')
-	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeViewOrientation')
+	# getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeViewOrientation')
+	# getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeViewOrientation')
 	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinAlignView')
 	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeView')
