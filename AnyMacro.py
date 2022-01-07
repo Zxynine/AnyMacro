@@ -360,7 +360,6 @@ def clear_record_handler(args:adsk.core.CommandCreatedEventArgs):
 
 
 
-
 @error_catcher_
 def run(context):
 	global app_, ui_, panel_
