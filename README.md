@@ -121,6 +121,7 @@ Be aware of the following quirks in Fusion 360™.
 * V 1.0.2
   * Added in an alternate icon for the app since Autodesk did not like the first.
   * Fixed bug where cancelling the naming of a new macro would remove the command history anyways despite not making a macro.
+  * Potential fix for error [#1](https://github.com/Zxynine/AnyMacro/issues/1)
 * v 1.0.1
   * Fixed bug with built-in camera command where the camera would break if an orthagonal forwards was selected. 
   * Fixed bug causing command queue to throw a silent error
