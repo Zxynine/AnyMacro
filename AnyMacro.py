@@ -52,6 +52,7 @@ MACRO_DROPDOWN_ID = 'zxynine_anyMacroPremadeMacrosDropdown'
 CONSECUTIVE_TOGGLE_ID = 'zxynine_anyMacroBlockConsecutive'
 BUILD_MACRO_CMD_DEF_ID = 'zxynine_anyMacroBuildMacro'
 CLEAR_RECORD_CMD_ID = 'zxynine_anyMacroClearRecord'
+HALT_CMD_ID = 'zxynine_anyMacroHaltFire'
 ADD_MACRO_CUSTOM_ID = 'AnyMacro_Add_Macro'
 
 app_:adsk.core.Application = None
@@ -494,12 +495,9 @@ class ViewOrientations:
 	Back:adsk.core.Vector3D= Direction((0,0,1), (0,1,0))
 	
 	OrientationToUp = {
-		Top:Front,
-		Bottom:Back,
-		Left:Top,
-		Right:Top,
-		Front:Top,
-		Back:Top}
+		Top:Front,	Bottom:Back,
+		Left:Top,	Right:Top,
+		Front:Top,	Back:Top}
 
 def TryViewOrientation(args, orientation=None, localView = True):
 	camera = utils.camera.get()
