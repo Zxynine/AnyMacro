@@ -18,11 +18,13 @@ AnyMacro is free, but if you particually like it and wish to see more, consider 
 * Option to block a command from being recorded if it is fired twice in a row.
 * Two Built-in Camera orienting commands.
 * One Built-in Macro to demonstrate chaining.
+
+### -In Beta:
+* Create icons for built-in commands
+* A built-in command to halt any currently running macro.
 * Custom Event which allows API scripts/add-ins to register macros.
 
 ### -Planned:
-* Create icons for built-in commands
-* A built-in command to halt any currently running macro.
 * Ability to add custom icons to each macro.
 * Possible collaboration with AnyShortcut
 * Adding Built-in macros
