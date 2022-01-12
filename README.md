@@ -120,6 +120,9 @@ Be aware of the following quirks in Fusion 360™.
 * The commands that change the camera may demonstrate some odd visual bugs due to fusions interpolation.
 
 ## Changelog
+* V 1.0.3
+  * Added new icons for builtin commands.
+  * Added a command that will halt any currently running macro.
 * V 1.0.2
   * Added in an alternate icon for the app since Autodesk did not like the first.
   * Fixed bug where cancelling the naming of a new macro would remove the command history anyways despite not making a macro.
