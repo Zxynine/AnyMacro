@@ -291,7 +291,7 @@ class CommandTracker:
 		self.cmdIds[newId] = cmdDef.id
 
 		getDelete(ui_.commandDefinitions, newId)
-		newCmdDef = checkIcon(ui_.commandDefinitions.addButtonDefinition(newId, cmdDef.name,'Click to remove from Macro', cmdDef.resourceFolder))
+		newCmdDef = ui_.commandDefinitions.addButtonDefinition(newId, cmdDef.name,'Click to remove this command from the Macro', checkIcon(cmdDef).resourceFolder)
 		newCmdCtrl = tracking_dropdown_.dropdownControls.addCommand(newCmdDef)
 
 		def removeHandler(args: adsk.core.CommandCreatedEventArgs):	
