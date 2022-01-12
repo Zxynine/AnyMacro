@@ -399,7 +399,7 @@ def add_primary_commands(parent:adsk.core.ToolbarPanel):
 	add_macro_dropdown(macro_dropdown_.control.controls)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global halt_cmd_def
-	halt_cmd_def = CommandRef(parent.controls, HALT_CMD_ID, 'Stop current Macro', './resources/stop')
+	halt_cmd_def = CommandRef(parent.controls, HALT_CMD_ID, 'Stop current Macro', './resources/noicon', 'Will instantly stop any macro that is running while this command is fired.')
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global consecutive_block_tgl
 	consecutive_block_tgl = ToggleRef(parent.controls, CONSECUTIVE_TOGGLE_ID, 'Block Consecutive Fires', False)
