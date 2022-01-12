@@ -20,7 +20,7 @@ AnyMacro is free, but if you particually like it and wish to see more, consider 
 * One Built-in Macro to demonstrate chaining.
 
 ### -In Beta:
-* Create icons for built-in commands
+* Icons for built-in commands
 * A built-in command to halt any currently running macro.
 * Custom Event which allows API scripts/add-ins to register macros.
 
@@ -93,7 +93,7 @@ Built-in macros include:
 
 ## Supported Platforms
   * Windows
-  * Mac OS
+  * Mac OS*
 
 ## Installation
 1. Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page. If there are folders with an `@` symbol, ensure they are included in the release.
