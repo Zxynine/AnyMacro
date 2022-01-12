@@ -94,7 +94,7 @@ Built-in macros include:
   * Mac OS
 
 ## Installation
-1. Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page.
+1. Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page. If there are folders with an `@` symbol, ensure they are included in the release.
 2. Unpack it into `API\AddIns` (see [How to install an add-in or script in Fusion 360](https://knowledge.autodesk.com/support/fusion-360/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-install-an-ADD-IN-and-Script-in-Fusion-360.html)).
 3. Make sure the directory is named `AnyMacro`, with no suffix.
 4. The new menu *`TOOLS`* -> *`ANYMACRO`* is now available.
