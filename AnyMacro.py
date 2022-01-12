@@ -24,11 +24,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from os import name
 import adsk.core, adsk.fusion, adsk.cam
 
 from collections import deque
-from typing import Deque, Union
 import os.path as path,json
 
 
@@ -105,7 +103,7 @@ def MessagePromptCast(messageText, messageBoxTitle, buttonType=adsk.core.Message
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 class ReferenceBase:
-	def __init__(self,cmdDef:adsk.core.CommandDefinition=None, cmdCtrl: Union[adsk.core.CommandControl,adsk.core.DropDownControl]=None):
+	def __init__(self,cmdDef:adsk.core.CommandDefinition=None, cmdCtrl: 'adsk.core.CommandControl | adsk.core.DropDownControl'=None):
 		self.definition = cmdDef
 		self.control = cmdCtrl
 		self.id = cmdCtrl.id if exists(cmdCtrl) else cmdDef.id if exists(cmdDef) else None
@@ -144,7 +142,7 @@ enable_cmd:CommandRef = None
 build_macro_cmd:CommandRef = None
 clear_record_cmd:CommandRef = None
 consecutive_block_tgl:ToggleRef=None
-
+halt_cmd_def:CommandRef = None
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 def getQueuedEvents(executeList:deque):
 	def initialCreate(args: adsk.core.CommandCreatedEventArgs):
@@ -155,6 +153,7 @@ def getQueuedEvents(executeList:deque):
 			startingInfo.remove(); terminatedInfo.remove()
 
 		def CmdStartingHandler(args:adsk.core.ApplicationCommandEventArgs):
+			if args.commandId == 'zxynine_anyMacroHaltFire': return stopHandlers()
 			if args.commandId == commandOrder[0]:
 				nonlocal currentCommand; currentCommand = commandOrder.popleft()
 			if len(commandOrder) == 0: stopHandlers()
@@ -266,7 +265,7 @@ class CommandTracker:
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def __init__(self,): 
-		self.executeList: Deque[ReferenceBase] = deque()
+		self.executeList: 'deque[ReferenceBase]' = deque()
 		self.cmdIds: dict = {}
 		self.currentMacro:Macro=None
 		self.startTracking()
@@ -399,9 +398,11 @@ def add_primary_commands(parent:adsk.core.ToolbarPanel):
 	macro_dropdown_ = DropdownRef(parent.controls, MACRO_DROPDOWN_ID, 'Custom Macros', './resources/allmacros')
 	add_macro_dropdown(macro_dropdown_.control.controls)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	global halt_cmd_def
+	halt_cmd_def = CommandRef(parent.controls, HALT_CMD_ID, 'Stop current Macro', './resources/stop')
+	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global consecutive_block_tgl
 	consecutive_block_tgl = ToggleRef(parent.controls, CONSECUTIVE_TOGGLE_ID, 'Block Consecutive Fires', False)
-	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
@@ -482,8 +483,8 @@ class ViewOrientations:
 		ZAxisUp =  adsk.core.DefaultModelingOrientations.ZUpModelingOrientation
 		def GetCurrentOrientation(self): return app_.preferences.generalPreferences.defaultModelingOrientation
 		def __init__(self, Yup,Zup):
-			self.direction = { self.YAxisUp:Yup, self.ZAxisUp:Zup}
-		def __get__(self,instance,owner):
+			self.direction = {self.YAxisUp:Yup, self.ZAxisUp:Zup}
+		def __get__(self,instance,owner) -> adsk.core.Vector3D:
 			return adsk.core.Vector3D.create(*self.direction.get(self.GetCurrentOrientation()))
 		def __set__(self,instance,value): return False
 	
@@ -583,13 +584,13 @@ def createBuiltInCommands():
 	AlignView= CommandRef(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinAlignView',
 			'Change Cameras Up',
-			'./resources/noicon','')
+			'./resources/BuiltinIcons/CameraUp','')
 	events_manager_.add_handler(AlignView.definition.commandCreated, alignViewHandler)
 
 	ChangeView= CommandRef(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinChangeView',
 			'Change Cameras Forwards',
-			'./resources/noicon','')
+			'./resources/BuiltinIcons/CameraForward','')
 	events_manager_.add_handler(ChangeView.definition.commandCreated, changeViewAxis)
 	
 	# ChangeView= CommandRef(inspectPanel.controls,
