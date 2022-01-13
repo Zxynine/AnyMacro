@@ -1,8 +1,8 @@
-# ![](resources/AnyMacroIcon/AnyMacroIcon.png) AnyMacro
+# ![](resources/AnyMacroIcon/AnyMacroIcon.png) AnyMacro 
 
 AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in a row to form `Macros`. Macros are created from a set of commands run while the add-in is recording. The macro, when finished, will fire each of the recorded commands consecutively. Additionally, the macros created are able to be mapped to keyboard shortcuts for ease of access.
 
-\* This is not able to nor is it designed to replace the *[AnyShortcut](https://github.com/thomasa88/AnyShortcut)* add-in and thus, any functionality it has is not currently planned to be included in *`AnyMacro`*. This add-in is only based on the work by the creator of that add-in and is completly independant. With that said, using both is highly reccomended as they provide a large range of control over your Fusion 360™ application.
+\* This is not able to, nor is it designed to, replace the *[AnyShortcut](https://github.com/thomasa88/AnyShortcut)* add-in and thus, any functionality included in that add-in is not currently planned to be included in *`AnyMacro`*. This add-in is only based on the work by the creator of *`AnyShortcut`* and is completly independant. With that said, using both is highly reccomended as they provide a large range of control over your Fusion 360™ application.
 
 AnyMacro is free, but if you particually like it and wish to see more, consider [buying me a coffee (Ko-fi link)](ko-fi.com/zxynine)
 
@@ -39,14 +39,14 @@ When enabled, the add-in records the resulting commands of actions that the user
 
 \* *Not all actions in Fusion 360™ result in "Commands" and some commands are not usable on their own. For example, **Pick Circle/Arc Tangent** does not generate a "Command" and **Roll History Marker Here** is triggered when clicking rewind in the history, but rewind actually first selects an item and then rolls.*
 
-![Screenshot](tracking_screenshot.png)
+![Screenshot](./resources/ScreenShots/tracking_screenshot.png)
 
 ### -Creating Macros
 * Click ***Start recording*** and then launch a series of commands in the order you desire for your macro.
 * If the commands you chose are able to be recorded, they will be added underneath the record command in the ***Command Recorder*** dropdown at the top of the *AnyMacro* panel.
 * Should you desire to remove a command, you need just click its name within the dropdown.
 * Once you stop recording, two new options: ***Save Macro*** and ***Reset Recording***; should appear just under the record command along with a test macro at the bottom of the list. The test macro allows you to make sure everything works before you save it and see the changes you make to the command list.
-* Finally, once you are satisfied with the macro, hit the *Save Macro* button. This will display a prompt that will ask you to name your macro. There are few restrictions on the name, however, make sure there are *some* numbers or letters as its ID will be created using the `str.isidentifier()` method for each character.
+* Finally, once you are satisfied with the macro, hit the *Save Macro* button. This will display a prompt that will ask you to name your macro. There are few restrictions on the name, however, make sure there are *some* numbers or letters as its ID will be created using the `str.isidentifier()` method for each character. \* ***NOTE: If the ID is the same as another macro, it will be overwritten!***
 * You should now find your command under the *Custom Macros* dropdown. You can run, assign a key-combination, and delete it right from the menu. Additionaly, the macro is persistant, meaning it will remain between sessions of fusion360 and only needs to be created once.
 
 ### -Removing Macros
@@ -60,7 +60,7 @@ When enabled, the add-in records the resulting commands of actions that the user
 * Set its key: *`name`* to the desired name for the macro.
 * Set its key: *`id`* to the desired id. (Must be "`A-z|0-9|_`", no spaces!)
 * Set its key: *`executeList`* to a list of command-id's to execute in the same order.
-* Use `json.dumps` from the `Json` module to convert it into a string.
+* Use `json.dumps` from the `json` module to convert it into a string.
 * Use `Application.fireCustomEvent()` with the id "`AnyMacro_Add_Macro`"
 * Pass in your macro string for the `additionalInfo` argument.
 * Check to make sure your macro is visible under the `Custom Macros` dropdown
@@ -85,9 +85,9 @@ Built-in macros include:
 
 ### Images:
 
-![Screenshot](builtin_macro_screenshot.png) 
+![Screenshot](./resources/ScreenShots/builtin_macro_screenshot.png) 
 
-![Screenshot](builtin_commands_screenshot.png)
+![Screenshot](./resources/ScreenShots/builtin_commands_screenshot.png)
 
 \* The icons for the built-in commands are just placeholders
 
@@ -120,10 +120,12 @@ Be aware of the following quirks in Fusion 360™.
 * The commands that change the camera may demonstrate some odd visual bugs due to fusions interpolation.
 
 ## Changelog
-* V 1.0.3
+* v 1.0.3
   * Added new icons for builtin commands.
   * Added a command that will halt any currently running macro.
-* V 1.0.2
+  * Added a seperator between recorded commands and the Test Macro
+  * Fixed some grammar in the README
+* v 1.0.2
   * Added in an alternate icon for the app since Autodesk did not like the first.
   * Fixed bug where cancelling the naming of a new macro would remove the command history anyways despite not making a macro.
   * Potential fix for error [#1](https://github.com/Zxynine/AnyMacro/issues/1)

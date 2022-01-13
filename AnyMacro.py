@@ -217,7 +217,7 @@ class Macro:
 		self.parentControls = parentControls
 		self.Dropdown = DropdownRef(parentControls, f'{self.id}_group', self.name, './resources/anymacro')
 		self.Command = CommandRef(self.Dropdown.dropdownControls, self.id, self.name, './resources/anymacro')
-		self.Delete =CommandRef(self.Dropdown.dropdownControls, f'{self.id}_delete', f'Delete {self.name}', './resources/delete')
+		self.Delete = CommandRef(self.Dropdown.dropdownControls, f'{self.id}_delete', f'Delete {self.name}', './resources/delete')
 		self.updateHandlers(self.executeList)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	def updateHandlers(self,CommandIdList:list = None):
@@ -240,12 +240,9 @@ class Macro:
 		self.createInfo = None
 		self.removeInfo = None
 	def removeCommands(self):
-		if exists(self.Dropdown):self.Dropdown.deleteMe()
-		if exists(self.Command):self.Command.deleteMe()
-		if exists(self.Delete):self.Delete.deleteMe()
+		[cmd.deleteMe() for cmd in (self.Dropdown,self.Command,self.Delete) if exists(cmd)]
 	def removeHandlers(self):
-		if exists(self.createInfo):self.createInfo.remove()
-		if exists(self.removeInfo):self.removeInfo.remove()
+		[handler.remove() for handler in (self.createInfo,self.removeInfo) if exists(handler)]
 	def removeAll(self): 
 		self.removeHandlers()
 		self.removeCommands()
@@ -268,6 +265,7 @@ class CommandTracker:
 		self.executeList: 'deque[ReferenceBase]' = deque()
 		self.cmdIds: dict = {}
 		self.currentMacro:Macro=None
+		self.currentSeperator:adsk.core.SeparatorControl = None
 		self.startTracking()
 
 	def startTracking(self):
@@ -279,6 +277,7 @@ class CommandTracker:
 		CommandTracker.toggle(False)
 		self.removeHandler()
 		if self.count == 0: return
+		self.currentSeperator = tracking_dropdown_.dropdownControls.addSeparator('DemoMacroSeperator')
 		self.currentMacro = Macro(self.cmdIds.values(), tracking_dropdown_.dropdownControls, 'TestMacroId', 'Test Macro')
 
 	@property
@@ -314,6 +313,7 @@ class CommandTracker:
 
 	def clear(self): 
 		self.currentMacro = None
+		self.currentSeperator.deleteMe(); self.currentSeperator = None
 		self.executeList=[cmd.deleteMe() for cmd in self.executeList][:0]
 		self.cmdIds.clear()
 		checkQueue()
@@ -332,7 +332,7 @@ class CommandTracker:
 
 currentMacro : CommandTracker = None
 
-def checkQueue(): #This determines whether the save button is visible (only visible after recording)
+def checkQueue(): #This determines whether the save/clear buttons are visible (only visible after recording)
 	viewValue = exists(currentMacro) and currentMacro.count > 0
 	build_macro_cmd.control.isVisible = viewValue
 	clear_record_cmd.control.isVisible = viewValue
@@ -478,6 +478,13 @@ def removeAddMacroCustomEvent():
 
 
 
+
+
+
+
+
+
+
 class ViewOrientations:
 	class Direction:
 		YAxisUp =  adsk.core.DefaultModelingOrientations.YUpModelingOrientation
@@ -516,8 +523,6 @@ def TryViewOrientation(args, orientation=None, localView = True):
 	camera.eye = newEye
 
 	utils.camera.updateCamera(camera)
-
-
 
 
 
