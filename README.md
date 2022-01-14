@@ -1,4 +1,4 @@
-# ![](resources/AnyMacroIcon/AnyMacroIcon.png) AnyMacro 
+# ![](resources/AnyMacroIcon/AnyMacroIconV3_Small.png) AnyMacro 
 
 AnyMacro is an Autodesk® Fusion 360™ add-in for chaining multiple commands in a row to form `Macros`. Macros are created from a set of commands run while the add-in is recording. The macro, when finished, will fire each of the recorded commands consecutively. Additionally, the macros created are able to be mapped to keyboard shortcuts for ease of access.
 
@@ -95,11 +95,13 @@ Built-in macros include:
   * Windows
   * Mac OS*
 
+\* *Code should be universial, however, testing has only been done on Windows.*
+
 ## Installation
 1. Download the add-in from the [Releases](https://github.com/zxynine/AnyMacro/releases) page. If there are folders with an `@` symbol, ensure they are included in the release.
 2. Unpack it into `API\AddIns` (see [How to install an add-in or script in Fusion 360](https://knowledge.autodesk.com/support/fusion-360/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-install-an-ADD-IN-and-Script-in-Fusion-360.html)).
 3. Make sure the directory is named `AnyMacro`, with no suffix.
-4. The new menu *`TOOLS`* -> *`ANYMACRO`* is now available.
+4. The new menu *`TOOLS`* -> *`ANYMACRO`* should now be available.
 
 The add-in can be temporarily disabled using the *Scripts and Add-ins* dialog. Press *`Shift+S`* in Fusion 360™ and go to the *Add-Ins* tab.
 

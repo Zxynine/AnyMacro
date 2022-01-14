@@ -27,7 +27,7 @@
 import adsk.core, adsk.fusion, adsk.cam
 
 from collections import deque
-import os.path as path,json
+import os.path as path
 
 
 # Import relative path to avoid namespace pollution
@@ -40,7 +40,7 @@ VERSION = manifest.getVersion()
 FILE_DIR = path.dirname(path.realpath(__file__))
 VERSION_INFO = f'({NAME} v {VERSION})'
 CMD_DESCRIPTION = 'Enables or disables the tracking of commands to create a macro.'
-COMMAND_DATA = CMD_DESCRIPTION + '\n\n' + VERSION_INFO + '\n'
+COMMAND_DATA = f'{CMD_DESCRIPTION}\n\n{VERSION_INFO}\n'
 
 ENABLE_CMD_DEF_ID = 'zxynine_anyMacroList'
 PANEL_ID = 'zxynine_anyMacroPanel'
@@ -57,7 +57,6 @@ app_:adsk.core.Application = None
 ui_:adsk.core.UserInterface = None
 error_catcher_ = error.ErrorCatcher()
 events_manager_ = events.EventsManager(error_catcher_)
-manifest_ = manifest.read()
 add_macro_event:adsk.core.CustomEvent=None
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #Commands/Settings
@@ -93,13 +92,6 @@ def update_enable_text(curCount=0):
 	else: text,icon = 								f'Stop recording (Auto-stop after {MAX_TRACK-curCount} more commands)',	'./resources/stop'
 	UpdateButton(enable_cmd.definition, text, icon)
 
-
-
-
-def MessagePromptCast(messageText, messageBoxTitle, buttonType=adsk.core.MessageBoxButtonTypes.YesNoCancelButtonType, iconType=adsk.core.MessageBoxIconTypes.QuestionIconType):
-	dialogResult = ui_.messageBox(messageText, messageBoxTitle, buttonType, iconType) 
-	return {adsk.core.DialogResults.DialogYes:True,adsk.core.DialogResults.DialogNo:False}.get(dialogResult, None)
-
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 class ReferenceBase:
@@ -114,6 +106,8 @@ class CommandRef(ReferenceBase):
 		getDelete(ui_.commandDefinitions, newId)
 		cmdDef = ui_.commandDefinitions.addButtonDefinition(newId, newName, newToolTip, newIcon)
 		super().__init__(cmdDef, parentControls.addCommand(checkIcon(cmdDef)))
+	@property
+	def commandCreated(self): return self.definition.commandCreated
 
 class DropdownRef(ReferenceBase):
 	def __init__(self,parentControls:adsk.core.ToolbarControls,newId,newName,newIcon='./resources/noicon',newToolTip=''):
@@ -143,55 +137,42 @@ build_macro_cmd:CommandRef = None
 clear_record_cmd:CommandRef = None
 consecutive_block_tgl:ToggleRef=None
 halt_cmd_def:CommandRef = None
-#|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-def getQueuedEvents(executeList:deque):
-	def initialCreate(args: adsk.core.CommandCreatedEventArgs):
-		currentCommand = None
-		commandOrder = deque(executeList)
-		def stopHandlers():
-			nonlocal currentCommand; currentCommand = None
-			startingInfo.remove(); terminatedInfo.remove()
 
-		def CmdStartingHandler(args:adsk.core.ApplicationCommandEventArgs):
-			if args.commandId == 'zxynine_anyMacroHaltFire': return stopHandlers()
-			if args.commandId == commandOrder[0]:
-				nonlocal currentCommand; currentCommand = commandOrder.popleft()
-			if len(commandOrder) == 0: stopHandlers()
-		def CmdTerminatedHandler(args:adsk.core.ApplicationCommandEventArgs):
-			if args.commandId == currentCommand:
-				if len(commandOrder) == 0: stopHandlers()
-				else: utils.executeCommand(commandOrder[0])
-				
-		startingInfo = events_manager_.add_handler(ui_.commandStarting, CmdStartingHandler)
-		terminatedInfo = events_manager_.add_handler(ui_.commandTerminated, CmdTerminatedHandler)
-		utils.executeCommand(commandOrder[0])
-	return initialCreate
+
+
+
+
+
+
+
+
+
+#|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 class Macro:
 	@staticmethod
 	def fromJson(JsonObject: object):
-		if type(JsonObject) is str: return Macro.fromJson(json.loads(JsonObject))
-		MacroMethod = {dict:Macro.fromDict, list:Macro.fromList}.get(type(JsonObject),None)
-		if MacroMethod is None: raise TypeError('Object type must be a: JsonDict, or a JsonList')
+		MacroMethod = settings.fromJson(JsonObject, {dict:Macro.fromDict, list:Macro.fromList})
 		return MacroMethod(JsonObject)
 
 	@classmethod
 	def fromList(cls, macroList:list): return [cls.fromDict(dict) for dict in macroList]
 	@classmethod
 	def fromDict(cls, macroDict:dict):
-		MacroName = macroDict['name']
-		MacroId = macroDict['id']
+		MacroName =   macroDict['name']
+		MacroId =     macroDict['id']
 		executeList = macroDict['executeList']
 		parentControl:adsk.core.ToolbarControls = macro_dropdown_.control.controls
 		return Macro(executeList,parentControl,MacroId,MacroName,True)
 
 	@classmethod
-	def toList(cls): return [cls.toDict(macro) for macro in allMacros]
+	def toList(cls): return [dict for dict in [cls.toDict(macro) for macro in allMacros] if dict]
 	def toDict(self):
+		if self.name == '': return None
 		macroDict = {}
-		macroDict['name']=self.name
-		macroDict['id']=self.id
-		macroDict['executeList']=self.executeList
+		macroDict['name']=        self.name
+		macroDict['id']=          self.id
+		macroDict['executeList']= self.executeList
 		return macroDict
 
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -206,7 +187,7 @@ class Macro:
 	def updateIdentity(self,MacroId=None,MacroName=None):
 		if MacroName is None:
 			MacroName, cancelled = ui_.inputBox('Enter macro name:','Naming Macro','')
-			if cancelled: return False
+			if cancelled or MacroName == '': return False
 		self.name = MacroName
 		self.id = MacroId or f'AnyMacro_{utils.toIdentifier(MacroName)}'
 		self.updateCommands(self.parentControls)
@@ -224,21 +205,20 @@ class Macro:
 		self.removeHandlers()
 		self.executeList = list(CommandIdList)
 		def MacroRemoveHandler(args:adsk.core.CommandCreatedEventArgs):
-			result = MessagePromptCast(f'Are you sure you wish to delete the macro "{self.name}"?', 'Confirm Macro Deletion')
+			result = utils.MessagePromptCast(f'Are you sure you wish to delete the macro "{self.name}"?', 'Confirm Macro Deletion')
 			if result is not True: return #Cancels the deletion
 			self.removeAll()
 			if self.isBuilt: macrosToJson() #Updates the save file
 			else: currentMacro.clear() #Removes the history along with it
-		self.createInfo = events_manager_.add_handler(self.Command.definition.commandCreated, getQueuedEvents(self.executeList))
-		self.removeInfo = events_manager_.add_handler(self.Delete.definition.commandCreated, MacroRemoveHandler)
+		self.createInfo = events_manager_.add_handler(self.Command.commandCreated, getQueuedEvents(self.executeList))
+		self.removeInfo = events_manager_.add_handler(self.Delete.commandCreated, MacroRemoveHandler)
 		if self.isBuilt: macrosToJson()
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	def initialise(self):
 		self.Dropdown:DropdownRef=None
 		self.Command:CommandRef=None
 		self.Delete:CommandRef=None
-		self.createInfo = None
-		self.removeInfo = None
+		self.createInfo = self.removeInfo = None
 	def removeCommands(self):
 		[cmd.deleteMe() for cmd in (self.Dropdown,self.Command,self.Delete) if exists(cmd)]
 	def removeHandlers(self):
@@ -248,9 +228,43 @@ class Macro:
 		self.removeCommands()
 		allMacros.remove(self)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+def getQueuedEvents(executeList:deque):
+	def initialCreate(args: adsk.core.CommandCreatedEventArgs):
+		currentCommand = None
+		commandOrder = deque(executeList)
+		def stopHandlers():
+			nonlocal currentCommand; currentCommand = None
+			startingInfo.remove(); terminatedInfo.remove()
+
+		def CmdStartingHandler(args:adsk.core.ApplicationCommandEventArgs):
+			if args.commandId == HALT_CMD_ID: return stopHandlers()
+			if args.commandId == commandOrder[0]:
+				nonlocal currentCommand; currentCommand = commandOrder.popleft()
+			if len(commandOrder) == 0: stopHandlers()
+		def CmdTerminatedHandler(args:adsk.core.ApplicationCommandEventArgs):
+			if args.commandId == currentCommand:
+				if len(commandOrder) == 0: stopHandlers()
+				else: utils.executeCommand(commandOrder[0])
+				
+		startingInfo = events_manager_.add_handler(ui_.commandStarting, CmdStartingHandler)
+		terminatedInfo = events_manager_.add_handler(ui_.commandTerminated, CmdTerminatedHandler)
+		utils.executeCommand(commandOrder[0])
+	return initialCreate
 
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
+
+
+
+
+
+
+
+
+
+
+#TODO: Convert Command tracker into singleton, or try to merge with Macro class
 class CommandTracker:
 	deleteID = 0
 	tracking_ = False
@@ -280,6 +294,16 @@ class CommandTracker:
 		self.currentSeperator = tracking_dropdown_.dropdownControls.addSeparator('DemoMacroSeperator')
 		self.currentMacro = Macro(self.cmdIds.values(), tracking_dropdown_.dropdownControls, 'TestMacroId', 'Test Macro')
 
+	def getHandler(self):
+		def command_starting_handler(args:adsk.core.ApplicationCommandEventArgs):
+			cmdDef = args.commandDefinition
+			if cmdDef.id in {enable_cmd.id,'SelectCommand'}:return # Skip ourselves/Select
+			elif cmdDef.id != self.lastID: self.log(cmdDef) #Commands start twice? Dont log that.
+			elif not consecutive_block_tgl.value: self.lastID = ''
+		self.starting_handler = events_manager_.add_handler(ui_.commandStarting, command_starting_handler)
+	def removeHandler(self): self.starting_handler.remove()
+	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 	@property
 	def count(self):return len(self.executeList)
 
@@ -306,10 +330,14 @@ class CommandTracker:
 	def build(self):
 		if self.count == 0: return
 		self.currentMacro.isBuilt = True #Enables the remove handler to update the json
+		oldControls = self.currentMacro.parentControls
 		self.currentMacro.parentControls = macro_dropdown_.dropdownControls
 		if self.currentMacro.updateIdentity(): #Forces the macro to ask for a name and update
 			macrosToJson() #Saves all current macros
 			self.clear()
+		else: 
+			self.currentMacro.isBuilt = False
+			self.currentMacro.parentControls = oldControls
 
 	def clear(self): 
 		self.currentMacro = None
@@ -318,15 +346,7 @@ class CommandTracker:
 		self.cmdIds.clear()
 		checkQueue()
 
-	def getHandler(self):
-		def command_starting_handler(args:adsk.core.ApplicationCommandEventArgs):
-			cmdDef = args.commandDefinition
-			if cmdDef.id in {enable_cmd.id,'SelectCommand'}:return # Skip ourselves/Select
-			elif cmdDef.id != self.lastID: self.log(cmdDef) #Commands start twice? Dont log that.
-			elif not consecutive_block_tgl.value: self.lastID = ''
-		self.starting_handler = events_manager_.add_handler(ui_.commandStarting, command_starting_handler)
 
-	def removeHandler(self): self.starting_handler.remove()
 
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -356,6 +376,13 @@ def clear_record_handler(args:adsk.core.CommandCreatedEventArgs):
 		currentMacro.clear()
 
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+
+
+
+
+
 
 
 
@@ -412,16 +439,16 @@ def add_record_dropdown(parent:adsk.core.ToolbarControls):
 	# Cannot get checkbox to play nicely (won't update without collapsing the menu and the default checkbox icon is not showing...).  See checkbox-test branch.
 	global enable_cmd
 	enable_cmd = CommandRef(parent, ENABLE_CMD_DEF_ID, f'Loading...',newToolTip=COMMAND_DATA)
-	events_manager_.add_handler(event=enable_cmd.definition.commandCreated, callback=enable_cmd_def__created_handler)
+	events_manager_.add_handler(event=enable_cmd.commandCreated, callback=enable_cmd_def__created_handler)
 	FullPromote(enable_cmd.control)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global clear_record_cmd
 	clear_record_cmd = CommandRef(parent, CLEAR_RECORD_CMD_ID, 'Reset Recording', './resources/repeat')
-	events_manager_.add_handler(event=clear_record_cmd.definition.commandCreated, callback=clear_record_handler)
+	events_manager_.add_handler(event=clear_record_cmd.commandCreated, callback=clear_record_handler)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global build_macro_cmd
 	build_macro_cmd = CommandRef(parent, BUILD_MACRO_CMD_DEF_ID, 'Save Macro', './resources/save')
-	events_manager_.add_handler(event=build_macro_cmd.definition.commandCreated, callback=build_macro_handler)
+	events_manager_.add_handler(event=build_macro_cmd.commandCreated, callback=build_macro_handler)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	parent.addSeparator(f'{ENABLE_CMD_DEF_ID}_Seperator')#|||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -435,8 +462,18 @@ def add_macro_dropdown(parent:adsk.core.ToolbarControls):
 	parent.addSeparator(f'{NO_MACROS_ID}_Seperator')#|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 
+# class ViewCubeIDs:
+# 	Home = 'Tion_ViewCube_Home'
+# 	Top = 'Tion_ViewCube_Top'
+# 	Bottom = 'Tion_ViewCube_Bottom'
+# 	Left = 'Tion_ViewCube_Left'
+# 	Right = 'Tion_ViewCube_Right'
+# 	Front = 'Tion_ViewCube_Front'
+# 	Back = 'Tion_ViewCube_Back'
 
-
+# def add_view_orientations(parent:adsk.core.ToolbarControls):
+# 	build_macro_cmd = CommandRef(parent, ViewCubeIDs.Home, 'Home', './resources/noicon')
+# 	events_manager_.add_handler(event=build_macro_cmd.commandCreated, callback=build_macro_handler)
 
 
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -476,44 +513,50 @@ def removeAddMacroCustomEvent():
 
 
 
-
-
-
-
-
-
-
-
-
-class ViewOrientations:
+class ViewCube:
 	class Direction:
+		@classmethod
+		def NewDir(cls, UpDown=0,LeftRight=0,FrontBack=0):
+			Yup,Zup = (LeftRight,UpDown,FrontBack), (LeftRight,FrontBack,UpDown)
+			negYup,negZup = [-val for val in Yup], [-val for val in Zup]
+			return cls(Yup,Zup), cls(negYup,negZup)
+
 		YAxisUp =  adsk.core.DefaultModelingOrientations.YUpModelingOrientation
 		ZAxisUp =  adsk.core.DefaultModelingOrientations.ZUpModelingOrientation
 		def GetCurrentOrientation(self): return app_.preferences.generalPreferences.defaultModelingOrientation
-		def __init__(self, Yup,Zup):
-			self.direction = {self.YAxisUp:Yup, self.ZAxisUp:Zup}
-		def __get__(self,instance,owner) -> adsk.core.Vector3D:
-			return adsk.core.Vector3D.create(*self.direction.get(self.GetCurrentOrientation()))
+
+		def __init__(self, Yup,Zup): self.direction = {self.YAxisUp:Yup, self.ZAxisUp:Zup}.get
+		def __get__(self,instance,owner):
+			return adsk.core.Vector3D.create(*self.direction(self.GetCurrentOrientation()))
 		def __set__(self,instance,value): return False
+
+		
 	
-	Top:adsk.core.Vector3D= Direction((0,1,0), (0,0,1))
-	Bottom:adsk.core.Vector3D= Direction((0,-1,0), (0,0,-1))
-	Left:adsk.core.Vector3D= Direction((-1,0,0), (-1,0,0))
-	Right:adsk.core.Vector3D= Direction((1,0,0), (1,0,0))
-	Front:adsk.core.Vector3D= Direction((0,0,-1), (0,-1,0))
-	Back:adsk.core.Vector3D= Direction((0,0,1), (0,1,0))
-	
-	OrientationToUp = {
-		Top:Front,	Bottom:Back,
-		Left:Top,	Right:Top,
-		Front:Top,	Back:Top}
+	def CombinedView(*directions:adsk.core.Vector3D):
+		SUMVEC :adsk.core.Vector3D = adsk.core.Vector3D.create(0,0,0)
+		for dir in directions: SUMVEC.add(dir)
+		return SUMVEC if SUMVEC.length != 0 and SUMVEC.normalize() else ViewCube.Front
+
+	Top, Bottom= Direction.NewDir(UpDown=1)
+	Left, Right= Direction.NewDir(LeftRight=-1)
+	Front, Back= Direction.NewDir(FrontBack=-1)
+
+	def GetOrientationsUp(orientation:adsk.core.Vector3D):
+		def vectorTuple(vec:adsk.core.Vector3D):return vec.x,vec.y,vec.z
+		return {vectorTuple(ViewCube.Top):ViewCube.Front, vectorTuple(ViewCube.Bottom):ViewCube.Back}.get(vectorTuple(orientation), ViewCube.Top)
+
 
 def TryViewOrientation(args, orientation=None, localView = True):
+	# ui_.messageBox(str(ViewCube.CombinedView(ViewCube.Front,ViewCube.Left).asArray()))
+	# ui_.messageBox(str(ViewCube.CombinedView(ViewCube.Front,ViewCube.Back).asArray()))
+	# ui_.messageBox(str(ViewCube.CombinedView(ViewCube.Front,ViewCube.Left, ViewCube.Top).asArray()))
+
 	camera = utils.camera.get()
 	eyeVector= utils.camera.viewDirection(camera)
 
-	orientation = ViewOrientations.Front
-	upDirection = ViewOrientations.OrientationToUp.get(orientation)
+	orientation = ViewCube.Front
+	upDirection = ViewCube.GetOrientationsUp(orientation)
+	# ui_.messageBox(str(upDirection.asArray()))
 
 	orientation.scaleBy(eyeVector.length)
 	newEye = camera.target.copy()
@@ -523,6 +566,10 @@ def TryViewOrientation(args, orientation=None, localView = True):
 	camera.eye = newEye
 
 	utils.camera.updateCamera(camera)
+	utils.doEvents()
+	# ui_.messageBox(str((ViewCube.Front.asArray(),ViewCube.Top.asArray())))
+	# ui_.messageBox(str((str(utils.camera.get().eye.asArray()),str(utils.camera.get().target.asArray()), str(utils.camera.get().upVector.asArray()))))
+
 
 
 
@@ -546,10 +593,11 @@ def getLineDirection(prompt):
 	except: return None
 	if line: return geometry.lines.getDirection(line.entity)
 
+def viewCommandSetup(cmd: adsk.core.Command): cmd.isRepeatable=cmd.isExecutedWhenPreEmpted=False
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
-	args.command.isRepeatable = False
-	args.command.isExecutedWhenPreEmpted = False
+	viewCommandSetup(args.command)
 	lineDirection = getLineDirection('Please select a line represinting the "up" direction')
 	if not lineDirection: return
 	camera_copy = utils.camera.get()
@@ -562,8 +610,7 @@ def alignViewHandler(args: adsk.core.CommandCreatedEventArgs):
 
 
 def changeViewAxis(args: adsk.core.CommandCreatedEventArgs):
-	args.command.isRepeatable = False
-	args.command.isExecutedWhenPreEmpted = False
+	viewCommandSetup(args.command)
 	lineDirection = getLineDirection('Please select a line represinting the "forwards" direction')
 	if not lineDirection: return
 	camera_copy = utils.camera.get()
@@ -591,26 +638,26 @@ def createBuiltInCommands():
 			'zxynine_anymacro_BuiltinAlignView',
 			'Change Cameras Up',
 			'./resources/BuiltinIcons/CameraUp','')
-	events_manager_.add_handler(AlignView.definition.commandCreated, alignViewHandler)
+	events_manager_.add_handler(AlignView.commandCreated, alignViewHandler)
 
 	ChangeView= CommandRef(inspectPanel.controls,
 			'zxynine_anymacro_BuiltinChangeView',
 			'Change Cameras Forwards',
 			'./resources/BuiltinIcons/CameraForward','')
-	events_manager_.add_handler(ChangeView.definition.commandCreated, changeViewAxis)
+	events_manager_.add_handler(ChangeView.commandCreated, changeViewAxis)
 	
-	# ChangeView= CommandRef(inspectPanel.controls,
-	# 		'zxynine_anymacro_BuiltinChangeViewOrientation',
-	# 		'Change Cameras View Orientation',
-	# 		'./resources/save','')
-	# events_manager_.add_handler(ChangeView.definition.commandCreated, TryViewOrientation)
+	ChangeView= CommandRef(inspectPanel.controls,
+			'zxynine_anymacro_BuiltinChangeViewOrientation',
+			'Change Cameras View Orientation',
+			'./resources/save','')
+	events_manager_.add_handler(ChangeView.definition.commandCreated, TryViewOrientation)
 
 
 def removeBuiltInCommands():
 	inspectPanel = ui_.allToolbarPanels.itemById('ToolsInspectPanel')
 	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinAlignView')
 	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeView')
-	# getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeViewOrientation')
-	# getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeViewOrientation')
+	getDelete(inspectPanel.controls,'zxynine_anymacro_BuiltinChangeViewOrientation')
+	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeViewOrientation')
 	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinAlignView')
 	getDelete(ui_.commandDefinitions,'zxynine_anymacro_BuiltinChangeView')
