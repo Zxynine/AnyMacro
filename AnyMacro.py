@@ -228,7 +228,7 @@ class Macro:
 		self.removeCommands()
 		allMacros.remove(self)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	
+
 def getQueuedEvents(executeList:deque):
 	def initialCreate(args: adsk.core.CommandCreatedEventArgs):
 		currentCommand = None
@@ -345,7 +345,6 @@ class CommandTracker:
 		self.executeList=[cmd.deleteMe() for cmd in self.executeList][:0]
 		self.cmdIds.clear()
 		checkQueue()
-
 
 
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
