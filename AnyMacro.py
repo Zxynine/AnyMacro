@@ -291,6 +291,7 @@ class CommandTracker:
 		CommandTracker.toggle(False)
 		self.removeHandler()
 		if self.count == 0: return
+		getDelete(tracking_dropdown_.dropdownControls, 'DemoMacroSeperator')
 		self.currentSeperator = tracking_dropdown_.dropdownControls.addSeparator('DemoMacroSeperator')
 		self.currentMacro = Macro(self.cmdIds.values(), tracking_dropdown_.dropdownControls, 'TestMacroId', 'Test Macro')
 
@@ -449,6 +450,7 @@ def add_record_dropdown(parent:adsk.core.ToolbarControls):
 	build_macro_cmd = CommandRef(parent, BUILD_MACRO_CMD_DEF_ID, 'Save Macro', './resources/save')
 	events_manager_.add_handler(event=build_macro_cmd.commandCreated, callback=build_macro_handler)
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	getDelete(parent, f'{ENABLE_CMD_DEF_ID}_Seperator')
 	parent.addSeparator(f'{ENABLE_CMD_DEF_ID}_Seperator')#|||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 
@@ -458,6 +460,7 @@ def add_macro_dropdown(parent:adsk.core.ToolbarControls):
 	macro_dropdown_empty = CommandRef(parent, NO_MACROS_ID, 'All Custom Macros', './resources/noicon', 
 									'Start by recording a new macro and saving it')
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	getDelete(parent, f'{NO_MACROS_ID}_Seperator')
 	parent.addSeparator(f'{NO_MACROS_ID}_Seperator')#|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 

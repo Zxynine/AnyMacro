@@ -6,5 +6,21 @@
       "zxynine_anymacro_BuiltinChangeView",
       "zxynine_anymacro_BuiltinAlignView"
     ]
+  },
+  {
+    "name": "Test Macro",
+    "id": "TestMacroId",
+    "executeList": [
+      "CommitCommand",
+      "ShapeRectangleTwoPoint"
+    ]
+  },
+  {
+    "name": "Test Macro",
+    "id": "TestMacroId",
+    "executeList": [
+      "CommitCommand",
+      "ShapeRectangleTwoPoint"
+    ]
   }
 ]
